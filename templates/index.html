@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IGCSE Learning Platform</title>
-    <!-- Link to the external CSS file -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
@@ -24,18 +23,18 @@
         <p>Teacher Back-to-School Gift: Free Test Builder for September only! <a href="#">Unlock now</a></p>
     </div>
 
-    <div class="container">
-        <div class="center-hero">
-            <div>
-                <h1 class="headline">Exam-specific revision,<br>made by trusted examiners</h1>
-                <p class="muted">Real expertise. Real results. On average, our resources help students go up 2 grades.</p>
-                <div class="actions" id="get-started">
-                    <a href="#features" class="btn btn-primary">Get Started - for free</a>
-                </div>
+    <div class="container center-hero">
+        <div>
+            <h1 class="headline">Exam-specific revision,<br>made by trusted examiners</h1>
+            <p class="muted">Real expertise. Real results. On average, our resources help students go up 2 grades.</p>
+            <div class="actions" id="get-started">
+                <a href="#features" class="btn btn-primary">Get Started - for free</a>
             </div>
         </div>
+    </div>
 
-        <div class="why-it-works">
+    <div class="section-bg-darker">
+        <div class="container why-it-works">
             <h2 class="section-title">Why it works</h2>
             <div class="grid">
                 <div class="card">
@@ -61,19 +60,21 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="what-are-you-studying">
-            <h2 class="section-title">What are you studying?</h2>
-            <div class="actions">
-                <a href="#" class="btn btn-secondary">IGCSE</a>
-                <a href="#" class="btn btn-secondary">A-Level</a>
-                <a href="#" class="btn btn-secondary">IB</a>
-            </div>
+    <div class="container what-are-you-studying">
+        <h2 class="section-title">What are you studying?</h2>
+        <div class="actions">
+            <a href="#" class="btn btn-secondary">IGCSE</a>
+            <a href="#" class="btn btn-secondary">A-Level</a>
+            <a href="#" class="btn btn-secondary">IB</a>
         </div>
+    </div>
 
-        <div id="features">
+    <div class="features-section-styled">
+        <div id="features" class="container">
             <h2 class="section-title">Our Features</h2>
-            <div class="grid">
+            <div class="grid features-grid-padded">
                 <div class="card">
                     <div class="pad">
                         <h3>Chatbot Tutor</h3>
@@ -174,7 +175,7 @@
                         <li><a href="#">All Subjects</a></li>
                     </ul>
                 </div>
-                
+
                 <!-- Column 6: Social Media -->
                 <div>
                     <h4 class="footer-heading">Follow us</h4>
@@ -186,7 +187,7 @@
                     </ul>
                 </div>
             </div>
-            
+
             <div class="footer-bottom">
                 <p class="text-sm mb-4 md:mb-0">&copy; Copyright 2015-2025 mocksplainer Ltd. All Rights Reserved.</p>
                 <p class="text-sm">IBO was not involved in the production of, and does not endorse, the resources created by mocksplainer.</p>
