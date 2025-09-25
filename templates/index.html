@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IGCSE Learning Platform</title>
+    <!-- Link to the external CSS file -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
+
     <div class="topbar">
         <div class="logo">
-            <span>IGCSE Platform</span>
+            <span>IGCSE MockSplainer</span>
         </div>
         <div class="nav">
             <a href="#" class="pill">Login</a>
@@ -70,31 +74,31 @@
         <div id="features">
             <h2 class="section-title">Our Features</h2>
             <div class="grid">
-                <div class="card" onclick="location.href='/chatbot'">
+                <div class="card">
                     <div class="pad">
                         <h3>Chatbot Tutor</h3>
                         <p class="muted">Ask questions and get clear explanations on any topic.</p>
                     </div>
                 </div>
-                <div class="card" onclick="location.href='/mock-exam'">
+                <div class="card">
                     <div class="pad">
                         <h3>Mock Exam Generator</h3>
                         <p class="muted">Create custom exam papers from real-style questions.</p>
                     </div>
                 </div>
-                <div class="card" onclick="location.href='/flashcards'">
+                <div class="card">
                     <div class="pad">
                         <h3>Flashcards System</h3>
                         <p class="muted">Generate flashcards for quick revision of key concepts.</p>
                     </div>
                 </div>
-                <div class="card" onclick="location.href='/level-test'">
+                <div class="card">
                     <div class="pad">
                         <h3>Level Tester</h3>
                         <p class="muted">Take a short test to find your current level.</p>
                     </div>
                 </div>
-                <div class="card" onclick="location.href='/question-bank'">
+                <div class="card">
                     <div class="pad">
                         <h3>Personalised Question Bank</h3>
                         <p class="muted">Practice questions adapted to your level and weaknesses.</p>
@@ -103,5 +107,93 @@
             </div>
         </div>
     </div>
+
+    <!-- Start of Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <!-- Column 1: Home -->
+                <div>
+                    <h4 class="footer-heading">Home</h4>
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">Resources</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 2: Resources -->
+                <div>
+                    <h4 class="footer-heading">Resources</h4>
+                    <ul>
+                        <li><a href="#">Learning Hub</a></li>
+                        <li><a href="#">Teachers</a></li>
+                        <li><a href="#">Ambassadors</a></li>
+                        <li><a href="#">Scholarship</a></li>
+                        <li><a href="#">Join</a></li>
+                        <li><a href="#">Past Papers</a></li>
+                        <li><a href="#">Solution Banks</a></li>
+                        <li><a href="#">Sitemap</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 3: Members -->
+                <div>
+                    <h4 class="footer-heading">Members</h4>
+                    <ul>
+                        <li><a href="#">Log in</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 4: Company -->
+                <div>
+                    <h4 class="footer-heading">Company</h4>
+                    <ul>
+                        <li><a href="#">About us</a></li>
+                        <li><a href="#">Exam Specificity</a></li>
+                        <li><a href="#">Content Quality</a></li>
+                        <li><a href="#">Promotions</a></li>
+                        <li><a href="#">Jobs</a></li>
+                        <li><a href="#">Terms</a></li>
+                        <li><a href="#">Privacy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                        <li><a href="#">Help and Support</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 5: Subjects -->
+                <div>
+                    <h4 class="footer-heading">Subjects</h4>
+                    <ul>
+                        <li><a href="#">Biology</a></li>
+                        <li><a href="#">Chemistry</a></li>
+                        <li><a href="#">Physics</a></li>
+                        <li><a href="#">Maths</a></li>
+                        <li><a href="#">Geography</a></li>
+                        <li><a href="#">English Literature</a></li>
+                        <li><a href="#">Psychology</a></li>
+                        <li><a href="#">All Subjects</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Column 6: Social Media -->
+                <div>
+                    <h4 class="footer-heading">Follow us</h4>
+                    <ul>
+                        <li><a href="#">TikTok</a></li>
+                        <li><a href="#">Instagram</a></li>
+                        <li><a href="#">Facebook</a></li>
+                        <li><a href="#">Twitter</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="text-sm mb-4 md:mb-0">&copy; Copyright 2015-2025 mocksplainer Ltd. All Rights Reserved.</p>
+                <p class="text-sm">IBO was not involved in the production of, and does not endorse, the resources created by mocksplainer.</p>
+            </div>
+        </div>
+    </footer>
+    <!-- End of Footer -->
 </body>
+
 </html>
