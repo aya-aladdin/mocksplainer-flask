@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IGCSE Learning Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="topbar">
+        <div class="logo">
+            <span>IGCSE Platform</span>
+        </div>
+        <div class="nav">
+            <a href="#" class="pill">Login</a>
+        </div>
+    </div>
+
+    <div class="banner">
+        <p>Teacher Back-to-School Gift: Free Test Builder for September only! <a href="#">Unlock now</a></p>
+    </div>
+
+    <div class="container">
+        <div class="center-hero">
+            <div>
+                <h1 class="headline glow">Exam-specific revision,<br>made by trusted examiners</h1>
+                <p class="muted">Real expertise. Real results. On average, our resources help students go up 2 grades.</p>
+                <div class="actions">
+                    <a href="#features" class="btn btn-primary">Get Started - for free</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="why-it-works">
+            <h2 class="section-title">Why it works</h2>
+            <div class="grid">
+                <div class="card">
+                    <div class="pad">
+                        <h3>Revise only what you need to</h3>
+                        <p class="muted">Enjoy the relief and reassurance that every revision guide is written specifically for that syllabus so you only revise what you need to know.</p>
+                        <p class="quote">“Never felt so relieved in my life”</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="pad">
+                        <h3>Test yourself and check progress</h3>
+                        <p class="muted">Feel empowered and confident going into exams knowing that you’ve covered all the topics and have a greater understanding of each subject.</p>
+                        <p class="quote">“The tailored level of questions builds so much confidence within my students”</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="pad">
+                        <h3>Improve answer by answer</h3>
+                        <p class="muted">Gain certainty that you’re answering questions that get maximum marks, from model answers for every question, explained by an expert examiner or teacher.</p>
+                        <p class="quote">“I went from a 6-7-7 in Year 10 to 9-9-9 for my real exams, only because of your superb resources”</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="what-are-you-studying">
+            <h2 class="section-title">What are you studying?</h2>
+            <div class="actions">
+                <a href="#" class="btn btn-secondary">IGCSE</a>
+                <a href="#" class="btn btn-secondary">A-Level</a>
+                <a href="#" class="btn btn-secondary">IB</a>
+            </div>
+        </div>
+
+        <div id="features">
+            <h2 class="section-title">Our Features</h2>
+            <div class="grid">
+                <div class="card" onclick="location.href='/chatbot'">
+                    <div class="pad">
+                        <h3>Chatbot Tutor</h3>
+                        <p class="muted">Ask questions and get clear explanations on any topic.</p>
+                    </div>
+                </div>
+                <div class="card" onclick="location.href='/mock-exam'">
+                    <div class="pad">
+                        <h3>Mock Exam Generator</h3>
+                        <p class="muted">Create custom exam papers from real-style questions.</p>
+                    </div>
+                </div>
+                <div class="card" onclick="location.href='/flashcards'">
+                    <div class="pad">
+                        <h3>Flashcards System</h3>
+                        <p class="muted">Generate flashcards for quick revision of key concepts.</p>
+                    </div>
+                </div>
+                <div class="card" onclick="location.href='/level-test'">
+                    <div class="pad">
+                        <h3>Level Tester</h3>
+                        <p class="muted">Take a short test to find your current level.</p>
+                    </div>
+                </div>
+                <div class="card" onclick="location.href='/question-bank'">
+                    <div class="pad">
+                        <h3>Personalised Question Bank</h3>
+                        <p class="muted">Practice questions adapted to your level and weaknesses.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

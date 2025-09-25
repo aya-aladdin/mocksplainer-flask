@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - IGCSE Learning Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="topbar">
+        <div class="logo">
+            <a href="/" style="color: var(--ink);"><span>IGCSE Platform</span></a>
+        </div>
+        <div class="nav">
+            <a href="#" class="pill">Login</a>
+        </div>
+    </div>
+
+    <div class="container narrow">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
