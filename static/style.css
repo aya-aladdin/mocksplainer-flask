@@ -55,7 +55,7 @@ z-index: 50;
 display: flex;
 align-items: center;
 justify-content: space-between;
-padding: 14px 20px;
+padding: 10px 20px;
 background: rgba(255, 255, 255, .7);
 backdrop-filter: saturate(1.2) blur(10px);
 border-bottom: 1px solid #dee2e6;
@@ -78,6 +78,16 @@ letter-spacing: .5px;
 display: flex;
 gap: 14px;
 align-items: center;
+}
+
+.hamburger-menu {
+    display: none;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 24px;
+    color: var(--ink);
 }
 
 .nav-dropdown {
@@ -1035,4 +1045,211 @@ margin-top: 1rem;
 .answer-area textarea.form-control:focus {
     background-color: var(--panel);
     border-color: var(--accent);
+}
+
+/* --- Mobile Responsiveness --- */
+
+/* Generic App Layout with Sidebar */
+.app-layout {
+    display: flex;
+    gap: 32px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 16px;
+    }
+
+    .headline {
+        font-size: 36px;
+    }
+
+    .actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .btn {
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .topbar {
+        padding: 12px 16px;
+    }
+
+    .nav {
+        gap: 8px;
+    }
+
+    .nav a, .dropdown-toggle {
+        padding: 6px 8px;
+    }
+
+    .prompt-suggestions {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dashboard-main-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .app-layout {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .app-sidebar {
+        width: 100%;
+        position: static;
+        margin-bottom: 0;
+    }
+
+    .grid { grid-template-columns: 1fr; }
+
+    .test-list-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    /* --- Layouts with Sidebars --- */
+    .chat-layout-container,
+    .test-layout-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .chat-sidebar,
+    .test-sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        position: static;
+        margin-bottom: 1rem;
+    }
+
+    #chat-container {
+        height: calc(100vh - 250px); /* Adjust based on your layout */
+    }
+
+    .flashcards-layout {
+        flex-direction: column;
+    }
+
+    .flashcards-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1rem;
+    }
+
+    .flashcards-main-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .flashcards-main-header .actions {
+        flex-direction: row;
+        width: 100%;
+    }
+
+    .flashcards-main-header .actions .btn {
+        flex-grow: 1;
+    }
+
+}
+
+@media (max-width: 480px) {
+    .headline {
+        font-size: 28px;
+    }
+
+    .prompt-suggestions {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .creator-modal-content {
+        width: 95%;
+    }
+
+    .learn-modal-content {
+        width: 95%;
+        padding: 1rem;
+    }
+
+    .modal-content {
+        width: 90vw;
+        max-height: 85vh;
+    }
+
+    .nav {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--panel);
+        flex-direction: column;
+        align-items: stretch;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .nav.active {
+        display: flex;
+    }
+
+    .nav a, .nav .pill {
+        padding: 12px 16px;
+        text-align: center;
+    }
+
+    .hamburger-menu {
+        display: block;
+    }
+}
+
+@media (max-width: 480px) {
+    .headline {
+        font-size: 28px;
+    }
+
+    .prompt-suggestions {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .modal-content,
+    .creator-modal-content,
+    .learn-modal-content {
+        width: 95%;
+    }
 }

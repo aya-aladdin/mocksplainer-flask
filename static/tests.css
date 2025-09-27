@@ -1,10 +1,4 @@
 /* Generic App Layout */
-.app-layout {
-    display: flex;
-    gap: 32px;
-    min-height: calc(100vh - 61px - 5rem); /* Adjust height to fill viewport */
-}
-
 .app-sidebar {
     width: 300px;
     flex-shrink: 0;

@@ -135,17 +135,6 @@
     transition: background-color 0.2s;
 }
 
-/* Generic App Layout */
-.app-layout {
-    display: flex;
-    gap: 32px;
-}
-
-.app-sidebar {
-    width: 300px;
-    flex-shrink: 0;
-}
-
 .sidebar-section {
     background: var(--panel);
     border: 1px solid var(--border);
@@ -163,4 +152,21 @@
 .app-main {
     flex-grow: 1;
     min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .question-block {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .answer-content textarea {
+        min-height: 150px;
+    }
+
+    .ai-helper-sidebar {
+        max-width: 100%;
+        width: 100%;
+        right: -100%;
+    }
 }

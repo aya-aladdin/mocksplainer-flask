@@ -26,6 +26,9 @@
                 <a class="nav-link" href="{{ url_for('register') }}">Register</a>
             {% endif %}
         </nav>
+        <button class="hamburger-menu" id="hamburger-menu">
+            &#9776;
+        </button>
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -125,5 +128,16 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {% block scripts %}{% endblock %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.getElementById('hamburger-menu');
+            if (hamburger) {
+                const nav = document.querySelector('.nav');
+                hamburger.addEventListener('click', function() {
+                    nav.classList.toggle('active');
+                });
+            }
+        });
+    </script>
 </body>
 </html>
