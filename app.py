@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import datetime
 import urllib.request # Added for Hack Club API calls
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -50,6 +51,16 @@ class Flashcard(db.Model):
     question = db.Column(db.Text, nullable=False)
     answer = db.Column(db.Text, nullable=False)
     folder_id = db.Column(db.Integer, db.ForeignKey('folder.id'), nullable=True)
+
+class FlashcardAttempt(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    flashcard_id = db.Column(db.Integer, db.ForeignKey('flashcard.id', ondelete='CASCADE'), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    was_correct = db.Column(db.Boolean, nullable=False)
+
+    user = db.relationship('User', backref=db.backref('attempts', lazy='dynamic'))
+    flashcard = db.relationship('Flashcard', backref=db.backref('attempts', lazy='dynamic'))
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -165,6 +176,55 @@ def create_folder():
         db.session.rollback()
         print(f"Folder Creation Error: {e}")
         return jsonify({'error': 'Failed to create folder.'}), 500
+
+@app.route('/get_learn_session_flashcards', methods=['POST'])
+@login_required
+def get_learn_session_flashcards():
+    """
+    Recursively fetches all flashcards from a list of selected folder IDs.
+    """
+    data = request.json
+    folder_ids = data.get('folder_ids', [])
+    
+    all_flashcards = []
+    
+    def fetch_flashcards_recursive(folder_id):
+        folder = Folder.query.get(folder_id)
+        if not folder or folder.user_id != current_user.id:
+            return
+
+        # Add flashcards from the current folder
+        for fc in folder.flashcards:
+            all_flashcards.append({
+                'id': fc.id, 'question': fc.question, 'answer': fc.answer, 'topic': fc.topic
+            })
+        
+        # Recurse into subfolders
+        for subfolder in folder.subfolders:
+            fetch_flashcards_recursive(subfolder.id)
+
+    for f_id in folder_ids:
+        fetch_flashcards_recursive(f_id)
+
+    # Remove duplicates in case folders were nested within each other
+    unique_flashcards = list({fc['id']: fc for fc in all_flashcards}.values())
+    
+    return jsonify({'flashcards': unique_flashcards})
+
+@app.route('/record_learn_attempt', methods=['POST'])
+@login_required
+def record_learn_attempt():
+    data = request.json
+    flashcard_id = data.get('flashcard_id')
+    was_correct = data.get('was_correct')
+
+    if flashcard_id is None or was_correct is None:
+        return jsonify({'error': 'Missing data.'}), 400
+
+    attempt = FlashcardAttempt(user_id=current_user.id, flashcard_id=flashcard_id, was_correct=was_correct)
+    db.session.add(attempt)
+    db.session.commit()
+    return jsonify({'message': 'Attempt recorded.'})
 
 @login_required
 @app.route('/update_item', methods=['POST'])
@@ -421,17 +481,31 @@ def index():
 @login_required
 def profile():
     # Query user's flashcards to generate stats
-    user_flashcards = Flashcard.query.filter_by(user_id=current_user.id).all()
+    total_flashcards = Flashcard.query.filter_by(user_id=current_user.id).count()
     
-    # Calculate stats
-    total_flashcards = len(user_flashcards)
+    # Calculate topic performance
+    attempts = FlashcardAttempt.query.join(Flashcard).filter(Flashcard.user_id == current_user.id).all()
     topics_dict = {}
-    for fc in user_flashcards:
-        topics_dict[fc.topic] = topics_dict.get(fc.topic, 0) + 1
+    performance_data = {}
+    for attempt in attempts:
+        topic = attempt.flashcard.topic
+        if topic not in performance_data:
+            performance_data[topic] = {'correct': 0, 'total': 0}
+        performance_data[topic]['total'] += 1
+        if attempt.was_correct:
+            performance_data[topic]['correct'] += 1
     
-    # Get the 5 most recent flashcards
-    recent_flashcards = Flashcard.query.filter_by(user_id=current_user.id).order_by(Flashcard.id.desc()).limit(5).all()
-    return render_template('profile.html', total_flashcards=total_flashcards, topics_data=topics_dict, recent_flashcards=recent_flashcards)
+    # Calculate accuracy and sort
+    topic_performance = []
+    for topic, data in performance_data.items():
+        accuracy = (data['correct'] / data['total']) * 100 if data['total'] > 0 else 0
+        topic_performance.append({'topic': topic, 'accuracy': round(accuracy)})
+    topic_performance.sort(key=lambda x: x['accuracy'], reverse=True)
+
+    # Get recently studied flashcards
+    recently_studied_attempts = FlashcardAttempt.query.filter_by(user_id=current_user.id).order_by(FlashcardAttempt.timestamp.desc()).limit(10).all()
+    recent_flashcards = list(dict.fromkeys([attempt.flashcard for attempt in recently_studied_attempts]))[:5]
+    return render_template('profile.html', total_flashcards=total_flashcards, topic_performance=topic_performance, recent_flashcards=recent_flashcards)
 
 @app.route('/chatbot')
 @login_required

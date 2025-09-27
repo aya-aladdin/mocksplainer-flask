@@ -39,11 +39,25 @@
     </main>
 </div>
 
+<!-- Select Folders for Learn Mode Modal -->
+<div id="select-learn-folders-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <h3>Select folders to learn</h3>
+        <div id="select-learn-folders-tree" style="max-height: 300px; overflow-y: auto; margin: 1rem 0;">
+            <!-- Folder tree with checkboxes will be rendered here -->
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" id="cancel-learn-selection-btn">Cancel</button>
+            <button class="btn btn-primary" id="start-learn-session-btn">Start Learning</button>
+        </div>
+    </div>
+</div>
+
 <!-- Learn Mode Modal -->
 <div id="learn-mode-modal" class="modal-overlay" style="display: none;">
     <div class="learn-modal-content">
         <button class="modal-close-btn" id="close-learn-modal">&times;</button>
-        <div class="learn-flashcard">
+        <div class="learn-flashcard" onclick="this.parentElement.classList.toggle('flipped')">
             <div class="learn-flashcard-inner">
                 <div class="learn-flashcard-front">
                     <p id="learn-question"></p>
@@ -53,10 +67,12 @@
                 </div>
             </div>
         </div>
-        <div class="learn-controls">
-            <button id="prev-flashcard-btn" class="btn btn-secondary">Previous</button>
+        <div id="learn-controls">
             <div id="learn-progress">1 / 10</div>
-            <button id="next-flashcard-btn" class="btn btn-primary">Next</button>
+            <div id="learn-feedback-btns" style="display: none;">
+                <button id="learn-wrong-btn" class="btn btn-danger">I was wrong</button>
+                <button id="learn-right-btn" class="btn btn-success">I was right</button>
+            </div>
         </div>
     </div>
 </div>
@@ -171,6 +187,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const bulkMoveBtn = document.getElementById('bulk-move-btn');
     const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
     const cancelSelectionBtn = document.getElementById('cancel-selection-btn');
+    const learnModeBtn = document.getElementById('learn-mode-btn');
+    const selectLearnFoldersModal = document.getElementById('select-learn-folders-modal');
+    const startLearnSessionBtn = document.getElementById('start-learn-session-btn');
+    const cancelLearnSelectionBtn = document.getElementById('cancel-learn-selection-btn');
+    const learnModeModal = document.getElementById('learn-mode-modal');
+    const closeLearnModalBtn = document.getElementById('close-learn-modal');
+
 
     // --- RENDER FUNCTIONS ---
 
@@ -254,6 +277,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         parentElement.appendChild(ul);
     }
+
+    function renderLearnFolderTree(folders, parentElement) {
+        const ul = document.createElement('ul');
+        folders.forEach(folder => {
+            const li = document.createElement('li');
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = folder.id;
+            checkbox.id = `learn-check-${folder.id}`;
+            
+            label.setAttribute('for', checkbox.id);
+            label.innerHTML = `<span class="folder-icon">${folder.icon}</span> ${folder.name}`;
+            
+            li.appendChild(checkbox);
+            li.appendChild(label);
+
+            if (folder.subfolders && folder.subfolders.length > 0) {
+                const subUl = document.createElement('ul');
+                renderLearnFolderTree(folder.subfolders, subUl);
+                li.appendChild(subUl);
+            }
+            ul.appendChild(li);
+        });
+        parentElement.appendChild(ul);
+    }
+
+
+
 
     function renderItems(items) {
         itemsContainerEl.innerHTML = ''; // Clear current items
@@ -461,6 +513,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Error creating folder.');
             }
         }
+    });
+
+    learnModeBtn.addEventListener('click', () => {
+        const treeContainer = document.getElementById('select-learn-folders-tree');
+        treeContainer.innerHTML = '';
+        renderLearnFolderTree(fullData.folders, treeContainer);
+        selectLearnFoldersModal.style.display = 'flex';
     });
 
     newFlashcardBtn.addEventListener('click', () => {
@@ -696,6 +755,110 @@ document.addEventListener('DOMContentLoaded', function() {
             moveItemModal.style.display = 'none';
         }
     });
+
+    // --- Learn Mode Logic ---
+    let learnSession = {
+        flashcards: [],
+        currentIndex: 0,
+        correct: 0,
+        incorrect: 0
+    };
+
+    cancelLearnSelectionBtn.addEventListener('click', () => {
+        selectLearnFoldersModal.style.display = 'none';
+    });
+
+    closeLearnModalBtn.addEventListener('click', () => {
+        learnModeModal.style.display = 'none';
+    });
+
+    startLearnSessionBtn.addEventListener('click', async () => {
+        const selectedCheckboxes = document.querySelectorAll('#select-learn-folders-tree input[type="checkbox"]:checked');
+        const folderIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+        if (folderIds.length === 0) {
+            alert('Please select at least one folder to learn.');
+            return;
+        }
+
+        try {
+            const response = await fetch('{{ url_for("get_learn_session_flashcards") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ folder_ids: folderIds })
+            });
+            const data = await response.json();
+
+            if (data.flashcards && data.flashcards.length > 0) {
+                // Shuffle the flashcards for a random order
+                learnSession.flashcards = data.flashcards.sort(() => Math.random() - 0.5);
+                learnSession.currentIndex = 0;
+                learnSession.correct = 0;
+                learnSession.incorrect = 0;
+                
+                selectLearnFoldersModal.style.display = 'none';
+                learnModeModal.style.display = 'flex';
+                displayCurrentLearnCard();
+            } else {
+                alert('The selected folders do not contain any flashcards.');
+            }
+        } catch (error) {
+            console.error('Error starting learn session:', error);
+            alert('Could not start the learning session.');
+        }
+    });
+
+    function displayCurrentLearnCard() {
+        if (learnSession.currentIndex >= learnSession.flashcards.length) {
+            // Session finished
+            alert(`Session Complete!\n\nCorrect: ${learnSession.correct}\nIncorrect: ${learnSession.incorrect}`);
+            learnModeModal.style.display = 'none';
+            return;
+        }
+
+        const card = learnSession.flashcards[learnSession.currentIndex];
+        document.getElementById('learn-question').textContent = card.question;
+        document.getElementById('learn-answer').textContent = card.answer;
+        document.getElementById('learn-progress').textContent = `${learnSession.currentIndex + 1} / ${learnSession.flashcards.length}`;
+        
+        // Reset card state
+        learnModeModal.querySelector('.learn-modal-content').classList.remove('flipped');
+        document.getElementById('learn-feedback-btns').style.display = 'none';
+
+        // Show feedback buttons after a delay to encourage flipping
+        setTimeout(() => {
+            if (learnModeModal.querySelector('.learn-modal-content').classList.contains('flipped')) {
+                document.getElementById('learn-feedback-btns').style.display = 'flex';
+            }
+        }, 1000);
+
+        learnModeModal.querySelector('.learn-flashcard').onclick = () => {
+            learnModeModal.querySelector('.learn-modal-content').classList.toggle('flipped');
+            if (learnModeModal.querySelector('.learn-modal-content').classList.contains('flipped')) {
+                document.getElementById('learn-feedback-btns').style.display = 'flex';
+            } else {
+                document.getElementById('learn-feedback-btns').style.display = 'none';
+            }
+        };
+    }
+
+    async function recordAndProceed(wasCorrect) {
+        const cardId = learnSession.flashcards[learnSession.currentIndex].id;
+        if (wasCorrect) learnSession.correct++;
+        else learnSession.incorrect++;
+
+        await fetch('{{ url_for("record_learn_attempt") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ flashcard_id: cardId, was_correct: wasCorrect })
+        });
+
+        learnSession.currentIndex++;
+        displayCurrentLearnCard();
+    }
+
+    document.getElementById('learn-right-btn').addEventListener('click', () => recordAndProceed(true));
+    document.getElementById('learn-wrong-btn').addEventListener('click', () => recordAndProceed(false));
 
     // --- Flashcard Creation Logic ---
     const aiGeneratorForm = document.getElementById('ai-generator-form');

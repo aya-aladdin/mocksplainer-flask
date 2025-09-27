@@ -18,7 +18,7 @@
         </div>
         <div class="card">
             <div class="pad">
-                <div class="stat-value">{{ topics_data|length }}</div>
+                <div class="stat-value">{{ topic_performance|length }}</div>
                 <div class="stat-label">Topics Studied</div>
             </div>
         </div>
@@ -32,24 +32,32 @@
 
     <!-- Main Dashboard Content -->
     <div class="grid dashboard-main-grid">
-        <!-- Topic Distribution Chart -->
+        <!-- Topic Performance -->
         <div class="card">
             <div class="pad">
-                <h3 class="card-section-title">Topic Distribution</h3>
-                {% if topics_data %}
-                <div class="chart-container">
-                    <canvas id="topicsPieChart"></canvas>
-                </div>
+                <h3 class="card-section-title">Topic Performance</h3>
+                {% if topic_performance %}
+                <ul class="performance-list">
+                    {% for item in topic_performance %}
+                    <li>
+                        <span class="topic-name">{{ item.topic }}</span>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: {{ item.accuracy }}%;"></div>
+                        </div>
+                        <span class="accuracy-label">{{ item.accuracy }}%</span>
+                    </li>
+                    {% endfor %}
+                </ul>
                 {% else %}
-                <p class="muted">No flashcards created yet. Start a chat with the AI Tutor to generate some!</p>
+                <p class="muted">Your performance will appear here after you complete a learning session.</p>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Recent Activity -->
+        <!-- Recently Studied -->
         <div class="card">
             <div class="pad">
-                <h3 class="card-section-title">Recent Flashcards</h3>
+                <h3 class="card-section-title">Recently Studied</h3>
                 {% if recent_flashcards %}
                 <ul class="activity-list">
                     {% for fc in recent_flashcards %}
@@ -60,45 +68,10 @@
                 </ul>
                 <a href="{{ url_for('flashcards') }}" class="btn-link">View all flashcards &rarr;</a>
                 {% else %}
-                <p class="muted">Your recently created flashcards will appear here.</p>
+                <p class="muted">Your recently studied flashcards will appear here.</p>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const topicsData = {{ topics_data | tojson | safe }};
-        const labels = Object.keys(topicsData);
-        const data = Object.values(topicsData);
-
-        if (labels.length > 0) {
-            const ctx = document.getElementById('topicsPieChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Flashcards per Topic',
-                        data: data,
-                        backgroundColor: ['#3b82f6', '#ef4444', '#22c55e', '#f97316', '#8b5cf6', '#fde047'],
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        }
-                    }
-                }
-            });
-        }
-    });
-</script>
 {% endblock %}
