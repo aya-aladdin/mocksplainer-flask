@@ -313,12 +313,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
                 <div class="flashcard-footer">
-                    <span class="flip-card-btn">Flip Card</span>
                     <div class="item-menu-btn">...</div>
                     <div class="item-menu-dropdown">
                         <a href="#" class="select-toggle-btn">${isSelected ? 'Deselect' : 'Select'}</a>
                         <a href="#" class="rename-btn">Rename</a>
-                        <a href="#" class="move-btn">Move</a>
                         <a href="#" class="delete-btn">Delete</a>
                     </div>
                 </div>
@@ -326,16 +324,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isSelected) flashcardEl.classList.add('selected');
 
             flashcardEl.addEventListener('click', (e) => {
-                if (e.target.classList.contains('flip-card-btn')) {
-                    e.stopPropagation();
-                    flashcardEl.querySelector('.flashcard-inner').classList.toggle('flipped');
-                } else if (selectedItems.size > 0) {
+                if (selectedItems.size > 0) {
                     // If in selection mode, clicking the card toggles selection
                     if (!e.target.closest('.item-menu-btn') && !e.target.closest('.item-menu-dropdown')) {
                         toggleSelection(flashcardEl);
                     }
-                } else if (!e.target.closest('.flashcard-footer')) {
-                    flashcardEl.querySelector('.flashcard-inner').classList.toggle('flipped');
+                } else if (!e.target.closest('.item-menu-btn') && !e.target.closest('.item-menu-dropdown')) {
+                    flashcardEl.classList.toggle('flipped');
                 }
             });
 
