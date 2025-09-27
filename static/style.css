@@ -98,7 +98,7 @@ font-weight: 700;
 .container {
 max-width: 1300px;
 margin: 24px auto;
-padding: 0 8px;
+padding: 0 16px;
 }
 
 .container.narrow {
@@ -185,7 +185,7 @@ transition: background-color 0.3s;
 }
 
 .pad {
-padding: 18px;
+padding: 24px;
 }
 
 .pad-sm {
@@ -238,6 +238,7 @@ margin-top: 1rem;
             background-color: #1a202c; /* Dark blue/gray */
             color: #a0aec0; /* Lighter text color */
             padding: 3rem 0;
+            margin-top: 4rem;
         }
         .footer-container {
             max-width: 1200px;
@@ -300,4 +301,146 @@ margin-top: 1rem;
     max-width: 1400px;
     border-radius: 1.5rem;
     padding-bottom: 2rem;
+}
+
+#chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+#chat-messages {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-radius: 15px;
+    max-width: 80%;
+}
+
+.user-message {
+    background-color: #007bff;
+    color: white;
+    align-self: flex-end;
+}
+
+.bot-message {
+    background-color: #f0f0f0;
+    color: #333;
+    align-self: flex-start;
+}
+
+#chat-form {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+}
+
+#chat-input {
+    flex-grow: 1;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 8px;
+}
+
+.flashcards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.flashcard {
+    background-color: transparent;
+    height: 200px;
+    perspective: 1000px;
+    cursor: pointer;
+}
+
+.flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+}
+
+.flashcard.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+}
+
+.flashcard-front,
+.flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.flashcard-front {
+    background-color: #f0f0f0;
+    color: black;
+}
+
+.flashcard-back {
+    background-color: #007bff;
+    color: white;
+    transform: rotateY(180deg);
+}
+
+.auth-form .card {
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.auth-form .card-title {
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.auth-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.auth-form .form-control {
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.auth-form .btn-block {
+    border-radius: 5px;
+    padding: 10px 0;
+    font-weight: 700;
+}
+
+.auth-form .card-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    padding: 1rem;
+}
+
+.dashboard .card {
+    border-radius: 10px;
+}
+
+.dashboard .table th,
+.dashboard .table td {
+    vertical-align: middle;
 }

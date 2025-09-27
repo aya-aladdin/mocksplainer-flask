@@ -6,7 +6,25 @@
     <div class="card">
         <div class="pad">
             <h1 class="section-title">Flashcards System</h1>
-            <p>This is where the flashcards system will be.</p>
+            
+            {% if flashcards %}
+                <div class="flashcards-container">
+                    {% for flashcard in flashcards %}
+                        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                            <div class="flashcard-inner">
+                                <div class="flashcard-front">
+                                    <p>{{ flashcard.question }}</p>
+                                </div>
+                                <div class="flashcard-back">
+                                    <p>{{ flashcard.answer }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>You don't have any flashcards yet. Generate some from the chatbot!</p>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

@@ -6,7 +6,35 @@
     <div class="card">
         <div class="pad">
             <h1 class="section-title">Level Tester</h1>
-            <p>This is where the level tester will be.</p>
+            
+            <p>Take this short test to determine your current level of understanding.</p>
+
+            <form method="POST" action="{{ url_for('level_test') }}">
+                {% for question in questions %}
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <p><strong>Question {{ loop.index }}:</strong> {{ question.question_text }}</p>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="option_a_{{ question.id }}" value="a">
+                                <label class="form-check-label" for="option_a_{{ question.id }}">{{ question.option_a }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="option_b_{{ question.id }}" value="b">
+                                <label class="form-check-label" for="option_b_{{ question.id }}">{{ question.option_b }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="option_c_{{ question.id }}" value="c">
+                                <label class="form-check-label" for="option_c_{{ question.id }}">{{ question.option_c }}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="option_d_{{ question.id }}" value="d">
+                                <label class="form-check-label" for="option_d_{{ question.id }}">{{ question.option_d }}</label>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary mt-3">Submit Answers</button>
+            </form>
         </div>
     </div>
 {% endblock %}

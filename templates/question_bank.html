@@ -6,7 +6,48 @@
     <div class="card">
         <div class="pad">
             <h1 class="section-title">Personalised Question Bank</h1>
-            <p>This is where the personalised question bank will be.</p>
+            
+            <form method="POST" action="{{ url_for('question_bank') }}">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="topic">Topic</label>
+                        <select name="topic" id="topic" class="form-control">
+                            <option value="">All Topics</option>
+                            {% for topic in topics %}
+                                <option value="{{ topic }}">{{ topic }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="difficulty">Difficulty</label>
+                        <select name="difficulty" id="difficulty" class="form-control">
+                            <option value="">All Difficulties</option>
+                            <option value="Easy">Easy</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a href="{{ url_for('add_question') }}" class="btn btn-success">Add Question</a>
+            </form>
+
+            <hr>
+
+            {% if questions %}
+                {% for question in questions %}
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <p><strong>Question:</strong> {{ question.question_text }}</p>
+                            <p><strong>Topic:</strong> {{ question.topic }}</p>
+                            <p><strong>Difficulty:</strong> {{ question.difficulty }}</p>
+                            <p><strong>Answer:</strong> {{ question.option_a if question.correct_answer == 'a' else question.option_b if question.correct_answer == 'b' else question.option_c if question.correct_answer == 'c' else question.option_d }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No questions found.</p>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

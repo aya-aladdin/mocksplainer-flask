@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Your Launchpad{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center my-4">
+        <h1 class="h3">Your Launchpad</h1>
+        <form class="form-inline my-2 my-lg-0">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search for a subject" aria-label="Search">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        </form>
+    </div>
+
+    <div class="alert alert-success" role="alert">
+        Supercharge your revision: Unlock unlimited access
+    </div>
+
+    <h2>Hi, {{ username }} 👋</h2>
+    <p>Welcome to your Save My Exams account and launchpad to stress-free and effective study.</p>
+
+    <div class="card my-4">
+        <div class="card-body">
+            <h5 class="card-title">Pick up where you left off</h5>
+            <p class="card-text">CAMBRIDGE (CIE)IGCSE</p>
+            <p class="card-text">Chemistry/Atomic Structure & the Periodic Table</p>
+            <a href="{{ url_for('question_bank') }}" class="btn btn-primary">Exam Questions</a>
+        </div>
+    </div>
+
+    <h3>My subjects</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Subject</th>
+                <th scope="col">Level</th>
+                <th scope="col">Board</th>
+                <th scope="col">Your Grades</th>
+                <th scope="col">Revision Notes</th>
+                <th scope="col">Exam Questions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for subject in subjects %}
+            <tr>
+                <td>{{ subject }}</td>
+                <td>AP®</td>
+                <td></td>
+                <td>Choose a board to track progress</td>
+                <td></td>
+                <td><a href="{{ url_for('question_bank', topic=subject) }}" class="btn btn-sm btn-outline-primary">Exam Questions</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
