@@ -892,3 +892,33 @@ margin-top: 1rem;
 .btn-link:hover {
     text-decoration: underline;
 }
+
+/* --- Profile Page Additions --- */
+.dashboard-section-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem; /* Added gap for consistency */
+}
+
+.leaderboard-card {
+    margin-top: 2rem; /* This will now be applied */
+    margin-bottom: 2rem;
+}
+
+.activity-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.folder-icon-sm {
+    font-size: 1.2rem;
+}
+
+/* --- Profile Page Performance List --- */
+.performance-list { list-style: none; padding: 0; margin: 0; }
+.performance-list li { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; }
+.performance-list .topic-name { flex-basis: 30%; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.performance-list .progress-bar-container { flex-grow: 1; height: 10px; background-color: #e9ecef; border-radius: 5px; overflow: hidden; }
+.performance-list .progress-bar { height: 100%; background-color: var(--accent); border-radius: 5px; transition: width 0.5s ease-in-out; }
+.performance-list .accuracy-label { font-size: 0.9rem; font-weight: 500; min-width: 40px; text-align: right; }
