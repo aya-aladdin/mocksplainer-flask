@@ -26,11 +26,27 @@
             </div>
         </div>
 
+        <!-- Mobile-only view switcher -->
+        <div class="mobile-view-switcher">
+            <button class="view-switch-btn active" data-view="items">Items</button>
+            <button class="view-switch-btn" data-view="folders">My Collection</button>
+        </div>
+
         <nav id="breadcrumbs" aria-label="breadcrumb"></nav>
 
         <div id="items-container" class="items-grid">
         </div>
     </main>
+</div>
+
+<!-- Mobile Floating Action Button -->
+<button id="mobile-add-btn" class="fab" title="Create Flashcard">
+    <span>+</span>
+</button>
+
+<!-- Mobile Sticky Learn Button -->
+<div class="mobile-bottom-actions">
+    <button class="btn btn-primary" id="mobile-learn-btn">Learn</button>
 </div>
 
 <div id="select-learn-folders-modal" class="modal-overlay" style="display: none;">
@@ -170,6 +186,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelSelectionBtn = document.getElementById('cancel-selection-btn');
     const learnModeBtn = document.getElementById('learn-mode-btn');
     const selectLearnFoldersModal = document.getElementById('select-learn-folders-modal');
+    const mobileAddBtn = document.getElementById('mobile-add-btn');
+    const mobileLearnBtn = document.getElementById('mobile-learn-btn');
     const startLearnSessionBtn = document.getElementById('start-learn-session-btn');
     const cancelLearnSelectionBtn = document.getElementById('cancel-learn-selection-btn');
     const learnModeModal = document.getElementById('learn-mode-modal');
@@ -484,10 +502,19 @@ document.addEventListener('DOMContentLoaded', function() {
         renderLearnFolderTree(fullData.folders, treeContainer);
         selectLearnFoldersModal.style.display = 'flex';
     });
+    mobileLearnBtn.addEventListener('click', () => {
+        // Re-use the same logic as the desktop learn button
+        learnModeBtn.click();
+    });
 
     newFlashcardBtn.addEventListener('click', () => {
         createFlashcardModal.style.display = 'flex';
     });
+
+    mobileAddBtn.addEventListener('click', () => {
+        createFlashcardModal.style.display = 'flex';
+    });
+
 
     document.getElementById('close-create-modal').addEventListener('click', () => {
         createFlashcardModal.style.display = 'none';
@@ -961,6 +988,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // --- Mobile View Switcher Logic ---
+    const viewSwitcher = document.querySelector('.mobile-view-switcher');
+    viewSwitcher.addEventListener('click', (e) => {
+        if (e.target.classList.contains('view-switch-btn')) {
+            const view = e.target.dataset.view;
+            
+            viewSwitcher.querySelectorAll('.view-switch-btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+
+            const itemsView = document.getElementById('items-container');
+            const foldersView = document.getElementById('folder-tree');
+
+            itemsView.style.display = view === 'items' ? 'grid' : 'none';
+            foldersView.style.display = view === 'folders' ? 'block' : 'none';
+        }
+    });
 
     document.addEventListener('click', function (e) {
         if (!e.target.closest('.item-menu-btn') && !e.target.closest('.item-menu-dropdown')) {

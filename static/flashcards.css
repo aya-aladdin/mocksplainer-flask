@@ -375,3 +375,90 @@
 .toggle-arrow.open {
     transform: rotate(90deg);
 }
+
+/* --- Mobile Specific --- */
+.fab, .mobile-bottom-actions, .mobile-view-switcher {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .flashcards-layout {
+        padding-bottom: 100px; /* Space for sticky bottom bar */
+    }
+
+    .flashcards-sidebar {
+        display: none; /* Hide desktop sidebar */
+    }
+
+    #folder-tree {
+        display: none; /* Hide folder tree by default on mobile */
+        background: var(--panel);
+        padding: 1rem;
+        border-radius: 12px;
+        margin-top: 1rem;
+    }
+
+    .flashcards-main-header .actions {
+        display: none; /* Hide desktop action buttons */
+    }
+
+    .mobile-view-switcher {
+        display: flex;
+        background-color: #e9ecef;
+        padding: 4px;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .view-switch-btn {
+        flex: 1;
+        padding: 8px 12px;
+        border: none;
+        background: transparent;
+        font-weight: 500;
+        border-radius: 6px;
+        color: var(--muted);
+    }
+
+    .view-switch-btn.active {
+        background: var(--panel);
+        color: var(--ink);
+        box-shadow: var(--shadow);
+    }
+
+    .fab {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        width: 56px;
+        height: 56px;
+        background-color: var(--accent);
+        color: white;
+        border-radius: 50%;
+        border: none;
+        box-shadow: var(--shadow-lg);
+        font-size: 28px;
+        z-index: 1000;
+        cursor: pointer;
+    }
+
+    .mobile-bottom-actions {
+        display: block;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        padding: 1rem;
+        border-top: 1px solid var(--border);
+        z-index: 999;
+    }
+
+    .mobile-bottom-actions .btn {
+        width: 100%;
+    }
+}
