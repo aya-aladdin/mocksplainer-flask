@@ -17,16 +17,23 @@
                             <h4>Question {{ q.question_number }}</h4>
                             <span class="marks-label">[{{ q.marks }} marks]</span>
                         </div>
-                        <div class="question-text">{{ q.question_text | markdown }}</div>
+                        <div class="question-text">{{ q.question_text | markdown | safe }}</div>
                     </div>
                     <div class="answer-content">
                         <textarea class="form-control" rows="8" placeholder="Your answer..." data-question-id="{{ q.id }}"></textarea>
+                        <div class="mark-scheme" style="display: none;">
+                            <h5>Model Answer</h5>
+                            <div class="model-answer-text">{{ q.model_answer | markdown | safe }}</div>
+                            
+                            <h5 style="margin-top: 1rem;">Mark Scheme Criteria</h5>
+                            <div class="mark-scheme-criteria">{{ q.answer_text | markdown | safe }}</div>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
             <div class="test-submission-area">
-                <button class="btn btn-primary">Submit & View Mark Scheme</button>
+                <button id="submit-test-btn" class="btn btn-primary">Submit & View Mark Scheme</button>
             </div>
         </div>
 </div>
@@ -56,13 +63,14 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.question-text').forEach(function(element) {
-        renderMathInElement(element, {
-            delimiters: [
-                {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false}
-            ]
-        });
+    // Render math in the entire body, which covers questions and the AI helper
+    renderMathInElement(document.body, {
+        delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '\\[', right: '\\]', display: true}
+        ]
     });
 
     const askAiPopup = document.getElementById('ask-ai-popup');
@@ -167,17 +175,23 @@ document.addEventListener('DOMContentLoaded', function () {
         messageElement.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
         aiHelperMessages.appendChild(messageElement);
 
-        if (sender === 'bot') {
-            renderMathInElement(messageElement, {
-                delimiters: [
-                    {left: '$$', right: '$$', display: true},
-                    {left: '$', right: '$', display: false}
-                ]
-            });
-        }
-
         aiHelperMessages.scrollTop = aiHelperMessages.scrollHeight;
     }
+
+    const submitButton = document.getElementById('submit-test-btn');
+    submitButton.addEventListener('click', () => {
+        // Reveal all mark schemes and hide textareas
+        document.querySelectorAll('.question-block').forEach(block => {
+            const textarea = block.querySelector('textarea');
+            const markScheme = block.querySelector('.mark-scheme');
+            if (textarea) textarea.style.display = 'none';
+            if (markScheme) markScheme.style.display = 'block';
+        });
+
+        // Update the button to show it's been submitted
+        submitButton.textContent = 'Test Submitted';
+        submitButton.disabled = true;
+    });
 });
 </script>
 {% endblock %}

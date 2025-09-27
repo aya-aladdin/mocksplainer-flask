@@ -376,6 +376,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             itemsContainerEl.appendChild(flashcardEl);
         });
+
+        renderMathInElement(itemsContainerEl, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+            ]
+        });
     }
 
     function renderBreadcrumbs() {
@@ -798,8 +805,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const card = learnSession.flashcards[learnSession.currentIndex];
-        document.getElementById('learn-question').textContent = card.question;
-        document.getElementById('learn-answer').textContent = card.answer;
+        const questionEl = document.getElementById('learn-question');
+        const answerEl = document.getElementById('learn-answer');
+        
+        questionEl.innerHTML = card.question;
+        answerEl.innerHTML = card.answer;
+
+        renderMathInElement(learnModeModal, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+            ]
+        });
+
         document.getElementById('learn-progress').textContent = `${learnSession.currentIndex + 1} / ${learnSession.flashcards.length}`;
         
         learnModeModal.querySelector('.learn-modal-content').classList.remove('flipped');

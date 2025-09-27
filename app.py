@@ -76,6 +76,7 @@ class TestQuestion(db.Model):
     question_text = db.Column(db.Text, nullable=False)
     marks = db.Column(db.Integer, nullable=False)
     answer_text = db.Column(db.Text, nullable=False)
+    model_answer = db.Column(db.Text, nullable=True) # New field for the model answer
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -194,12 +195,12 @@ def generate_test_ai():
     try:
         system_prompt = r"""
             "You are an expert exam paper creator for various curricula (IGCSE, A-Level, IB, GCSE). "
-            "Your task is to generate a mock test based on user-provided specifications: exam board, subject, topic, number of questions, and approximate total marks. "
+            "Your task is to generate a mock test based on user specifications. "
             "The generated questions should be appropriate for the specified curriculum level. "
-            "Each question must have a 'question_number', 'question_text' (in Markdown), 'marks', and a detailed 'answer_text' for the mark scheme. The sum of marks should be close to the requested total. "
+            "Each question must have a 'question_number', 'question_text' (in Markdown), 'marks', a 'model_answer' (a full, well-written answer), and an 'answer_text' (the mark scheme as a bulleted list). The sum of marks should be close to the requested total. "
             "Respond ONLY with a valid JSON object. This JSON object must contain a single key 'questions', which is an array of question objects. "
             "Crucially, ensure all double quotes within any string values are properly escaped with a backslash (e.g., \"). Also, ensure any literal backslashes in the text are escaped (e.g., a single backslash \ should be written as \\). "
-            "Example: {\"questions\": [{\"question_number\": 1, \"question_text\": \"Explain the term 'osmosis'.\", \"marks\": 2, \"answer_text\": \"- Osmosis is the net movement of water molecules...\\n- from a region of higher water potential to a region of lower water potential...\"}]}"
+            "Example: {\"questions\": [{\"question_number\": 1, \"question_text\": \"Explain 'osmosis'.\", \"marks\": 2, \"model_answer\": \"Osmosis is the net movement of water molecules from an area of high water potential to an area of low water potential through a partially permeable membrane.\", \"answer_text\": \"- Net movement of water molecules [1]\\n- Through a partially permeable membrane [1]\"}]}"
         """
         
         user_prompt = (
@@ -288,7 +289,8 @@ def generate_test_ai():
                         question_number=q_data.get('question_number'),
                         question_text=q_data.get('question_text'),
                         marks=q_data.get('marks'),
-                        answer_text=q_data.get('answer_text')
+                        answer_text=q_data.get('answer_text'),
+                        model_answer=q_data.get('model_answer')
                     )
                     db.session.add(new_question)
                 
