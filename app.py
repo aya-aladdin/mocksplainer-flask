@@ -488,10 +488,18 @@ def profile():
     total_questions_answered = len(attempts)
 
     # For Pie Chart: Topic Distribution
-    user_flashcards = Flashcard.query.filter_by(user_id=current_user.id).all()
+    # Eager load the folder relationship to avoid extra queries in the loop
+    user_flashcards = Flashcard.query.filter_by(user_id=current_user.id).options(db.joinedload(Flashcard.folder)).all()
     topics_dict = {}
     for fc in user_flashcards:
-        topics_dict[fc.topic] = topics_dict.get(fc.topic, 0) + 1
+        topic = fc.topic
+        # If the topic is 'Manual', dynamically assign it based on its folder.
+        if topic == 'Manual':
+            if fc.folder:
+                topic = fc.folder.name
+            else:
+                topic = 'General' # Assign to 'General' if in root
+        topics_dict[topic] = topics_dict.get(topic, 0) + 1
 
     # For Leaderboard: Topic Performance
     performance_data = {}

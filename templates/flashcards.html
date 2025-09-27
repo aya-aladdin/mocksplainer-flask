@@ -1006,7 +1006,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const question = document.getElementById('manual-question').value;
         const answer = document.getElementById('manual-answer').value;
 
-        const newFlashcard = { topic: "Manual", question, answer };
+        let topic = "General"; // Default topic if in root
+        if (currentFolderId) {
+            const parentFolder = findFolder(currentFolderId);
+            if (parentFolder) {
+                topic = parentFolder.name;
+            }
+        }
+
+        const newFlashcard = { topic: topic, question, answer };
 
         const saveResult = await saveFlashcards([newFlashcard], currentFolderId);
         if (saveResult) {
