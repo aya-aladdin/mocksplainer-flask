@@ -49,6 +49,7 @@
         const chatInput = document.getElementById('chat-input');
         const chatMessages = document.getElementById('chat-messages');
         const welcomeScreen = document.getElementById('chat-welcome-screen');
+        let conversationHistory = []; // Array to store the conversation
 
         /**
          * Appends a new message to the chat container and handles rendering.
@@ -58,6 +59,9 @@
             if (welcomeScreen.style.display !== 'none') {
                 welcomeScreen.style.display = 'none';
             }
+
+            // Add message to history
+            conversationHistory.push({ role: (sender === 'bot' ? 'assistant' : 'user'), content: text });
 
             const messageElement = document.createElement('div');
             messageElement.classList.add('message');
@@ -94,37 +98,6 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        async function sendMessage() {
-            const message = chatInput.value.trim();
-            if (!message) return;
-
-            appendMessage('user', message);
-            chatInput.value = '';
-
-            try {
-                const response = await fetch("{{ url_for('chat') }}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ message: message })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to get response from chatbot');
-                }
-
-                const data = await response.json();
-
-                // Append the new message to allow multi-turn chat
-                appendMessage('bot', data.reply);
-
-            } catch (error) {
-                console.error('Error:', error);
-                appendMessage('bot', 'Sorry, something went wrong. Please try again.');
-            }
-        }
-
         function startWithPrompt(prompt) {
             chatInput.value = prompt;
             sendMessage();
@@ -135,5 +108,34 @@
             e.preventDefault();
             sendMessage();
         });
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            appendMessage('user', message); // This now correctly adds to history and DOM
+            chatInput.value = '';
+
+            try {
+                const response = await fetch("{{ url_for('chat') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ messages: conversationHistory })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to get response from chatbot');
+                }
+
+                const data = await response.json();
+                appendMessage('bot', data.reply);
+
+            } catch (error) {
+                console.error('Error:', error);
+                appendMessage('bot', 'Sorry, something went wrong. Please try again.');
+            }
+        }
     </script>
 {% endblock %}

@@ -86,10 +86,14 @@ def save_flashcards():
 @login_required # Protect the API endpoint
 def chat():
     data = request.json
-    user_message = data.get("message", "").strip()
+    # Expect a list of messages for context
+    messages = data.get("messages", [])
 
-    if not user_message:
-        return jsonify({"reply": "⚠️ Please type a message."})
+    if not messages:
+        return jsonify({"reply": "⚠️ No message provided."})
+
+    # The user's new message is the last one in the list
+    user_message = messages[-1].get("content", "").strip()
 
     try:
         # System Instruction for the IGCSE TutorBot
@@ -99,21 +103,16 @@ def chat():
             "Do not include any reasoning, thoughts, or conversational filler. "
             "Your responses should be in Markdown format."
         )
+
+        # Prepend the system message to the conversation history
+        api_messages = [{"role": "system", "content": system_content}] + messages
         
         req = urllib.request.Request(
             HACKCLUB_API_URL,
             data=json.dumps({
                 "model": "gpt-4o-mini",
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": system_content
-                    },
-                    {
-                        "role": "user",
-                        "content": IGCSE_INFO_TEXT + "\n" + user_message + " (Dont think.)"
-                    }
-                ],
+                # Pass the entire conversation history to the AI
+                "messages": api_messages,
                 "max_tokens": 800
             }).encode('utf-8'),
             headers={'Content-Type': 'application/json'}
