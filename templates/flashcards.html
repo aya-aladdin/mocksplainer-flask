@@ -49,6 +49,16 @@
     <button class="btn btn-primary" id="mobile-learn-btn">Learn</button>
 </div>
 
+<!-- Bulk Action Bar -->
+<div id="bulk-action-bar" class="bulk-action-bar">
+    <span id="selection-count" class="selection-count">0 items selected</span>
+    <div class="actions">
+        <button class="btn btn-secondary btn-sm" id="bulk-move-btn">Move</button>
+        <button class="btn btn-danger btn-sm" id="bulk-delete-btn">Delete</button>
+        <button class="btn btn-ghost btn-sm" id="bulk-cancel-btn">Cancel</button>
+    </div>
+</div>
+
 <div id="select-learn-folders-modal" class="modal-overlay">
     <div class="modal-content">
         <h3>Select folders to learn</h3>
@@ -160,14 +170,15 @@ document.addEventListener('DOMContentLoaded', function() {
     let itemToChangeIcon = null;
     let currentFolderId = null; // Keep track of the current folder
     let breadcrumbs = [];
+    let selectedItems = [];
 
     const newFolderBtn = document.getElementById('new-folder-btn');
     const moveItemModal = document.getElementById('move-item-modal');
-    const newFlashcardBtn = document.getElementById('new-flashcard-btn');
-    const createFlashcardModal = document.getElementById('create-flashcard-modal');
     const moveFolderTreeEl = document.getElementById('move-folder-tree');
     const confirmMoveBtn = document.getElementById('confirm-move-btn');
     const cancelMoveBtn = document.getElementById('cancel-move-btn');
+    const newFlashcardBtn = document.getElementById('new-flashcard-btn');
+    const createFlashcardModal = document.getElementById('create-flashcard-modal');;
     const cancelSelectionBtn = document.getElementById('cancel-selection-btn');
     const learnModeBtn = document.getElementById('learn-mode-btn'); 
     const selectLearnFoldersModal = document.getElementById('select-learn-folders-modal');
@@ -175,6 +186,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileLearnBtn = document.getElementById('mobile-learn-btn');
     const startLearnSessionBtn = document.getElementById('start-learn-session-btn');
 
+    const bulkActionBar = document.getElementById('bulk-action-bar');
+    const selectionCountEl = document.getElementById('selection-count');
+    const bulkMoveBtn = document.getElementById('bulk-move-btn');
+    const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+    const bulkCancelBtn = document.getElementById('bulk-cancel-btn');
     // DOM elements that are always present
     const folderTreeEl = document.getElementById('folder-tree');
     const itemsContainerEl = document.getElementById('items-container');
@@ -305,6 +321,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="item-name">${folder.name}</div>
                 <div class="item-menu-btn">...</div>
                 <div class="item-menu-dropdown">
+                    <a href="#" class="select-btn">Select</a>
                     <a href="#" class="rename-btn">Rename</a>
                     <a href="#" class="change-icon-btn">Change Icon</a>
                     <a href="#" class="move-btn">Move...</a>
@@ -313,7 +330,11 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             folderEl.addEventListener('click', (e) => {
                 if (!e.target.closest('.item-menu-btn') && !e.target.closest('.item-menu-dropdown')) {
-                    navigateToFolder(folder.id);
+                    if (selectedItems.length > 0) {
+                        toggleSelection(folderEl);
+                    } else {
+                        navigateToFolder(folder.id);
+                    }
                 }
             });
             itemsContainerEl.appendChild(folderEl);
@@ -337,6 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="flashcard-footer">
                     <div class="item-menu-btn">...</div>
                     <div class="item-menu-dropdown">
+                        <a href="#" class="select-btn">Select</a>
                         <a href="#" class="rename-btn">Rename</a>
                         <a href="#" class="move-btn">Move...</a>
                         <a href="#" class="delete-btn">Delete</a>
@@ -345,7 +367,11 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             flashcardEl.addEventListener('click', (e) => {
                 if (!e.target.closest('.item-menu-btn') && !e.target.closest('.item-menu-dropdown')) {
-                    flashcardEl.classList.toggle('flipped');
+                    if (selectedItems.length > 0) {
+                        toggleSelection(flashcardEl);
+                    } else {
+                        flashcardEl.classList.toggle('flipped');
+                    }
                 }
             });
 
@@ -402,6 +428,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function navigateToFolder(folderId) {
         currentFolderId = folderId;
+        clearSelection();
         if (folderId === null) {
             currentFolderNameEl.innerText = 'All Flashcards';
             breadcrumbs = [];
@@ -460,6 +487,54 @@ document.addEventListener('DOMContentLoaded', function() {
         createFlashcardModal.classList.remove('visible');
     });
 
+    // Also handle clicking on the overlay to close
+    createFlashcardModal.addEventListener('click', (e) => {
+        if (e.target === createFlashcardModal) {
+            createFlashcardModal.classList.remove('visible');
+        }
+    });
+
+    function toggleSelection(cardElement) {
+        const itemId = cardElement.dataset.itemId;
+        const itemType = cardElement.dataset.itemType;
+        const isSelected = cardElement.classList.toggle('selected');
+
+        if (isSelected) {
+            selectedItems.push({ id: itemId, type: itemType });
+        } else {
+            selectedItems = selectedItems.filter(item => item.id !== itemId);
+        }
+        updateBulkActionBar();
+    }
+
+    function updateBulkActionBar() {
+        const count = selectedItems.length;
+        if (count > 0) {
+            selectionCountEl.textContent = `${count} item${count > 1 ? 's' : ''} selected`;
+            bulkActionBar.classList.add('visible');
+            newFlashcardBtn.style.display = 'none';
+            learnModeBtn.style.display = 'none';
+            cancelSelectionBtn.style.display = 'inline-flex';
+        } else {
+            bulkActionBar.classList.remove('visible');
+            newFlashcardBtn.style.display = 'inline-flex';
+            learnModeBtn.style.display = 'inline-flex';
+            cancelSelectionBtn.style.display = 'none';
+        }
+    }
+
+    function clearSelection() {
+        selectedItems = [];
+        document.querySelectorAll('.item-card.selected').forEach(card => {
+            card.classList.remove('selected');
+        });
+        updateBulkActionBar();
+    }
+
+    bulkCancelBtn.addEventListener('click', clearSelection);
+    cancelSelectionBtn.addEventListener('click', clearSelection);
+
+
     itemsContainerEl.addEventListener('click', function(e) {
         const target = e.target; 
 
@@ -473,6 +548,27 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             target.closest('.item-card').classList.toggle('menu-open'); // Open/close current menu
             target.nextElementSibling.classList.toggle('visible'); // Show/hide dropdown
+        }
+
+        if (target.classList.contains('move-btn')) {
+            e.stopPropagation();
+            e.preventDefault();
+            const card = target.closest('.item-card');
+            itemToMove = {
+                id: card.dataset.itemId,
+                type: card.dataset.itemType
+            };
+            openMoveModal();
+        }
+
+        if (target.classList.contains('select-btn')) {
+            e.stopPropagation();
+            e.preventDefault();
+            const card = target.closest('.item-card');
+            // Enter selection mode and select the current item
+            toggleSelection(card);
+            // Hide the menu
+            target.closest('.item-menu-dropdown').classList.remove('visible');
         }
 
         if (target.classList.contains('rename-btn')) {
@@ -497,17 +593,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             }
-        }
-
-        if (target.classList.contains('move-btn')) {
-            e.stopPropagation();
-            e.preventDefault();
-            const card = target.closest('.item-card');
-            itemToMove = {
-                id: card.dataset.itemId,
-                type: card.dataset.itemType
-            };
-            openMoveModal();
         }
 
         if (target.classList.contains('change-icon-btn')) {
@@ -546,6 +631,40 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    bulkMoveBtn.addEventListener('click', () => {
+        itemToMove = null; // Ensure single-item move is cleared
+        openMoveModal();
+    });
+
+    bulkDeleteBtn.addEventListener('click', async () => {
+        const count = selectedItems.length;
+        if (count === 0) return;
+
+        if (confirm(`Are you sure you want to delete ${count} item${count > 1 ? 's' : ''}? This action cannot be undone.`)) {
+            try {
+                const response = await fetch('{{ url_for("delete_items_bulk") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: selectedItems })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    selectedItems.forEach(item => {
+                        const card = document.querySelector(`[data-item-id='${item.id}'][data-item-type='${item.type}']`);
+                        if (card) card.remove();
+                    });
+                    clearSelection();
+                } else {
+                    alert('Error: ' + (data.error || 'Could not delete items.'));
+                }
+            } catch (error) {
+                console.error('Bulk Delete Error:', error);
+                alert('An error occurred during bulk deletion.');
+            }
+        }
+    });
+
     function openMoveModal() {
         moveFolderTreeEl.innerHTML = '';
         const rootLink = document.createElement('a');
@@ -559,20 +678,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         moveFolderTreeEl.appendChild(rootLink);
     
-    renderMoveFolderTree(fullData.folders, moveFolderTreeEl);
-    moveItemModal.classList.add('visible');
+        renderMoveFolderTree(fullData.folders, moveFolderTreeEl);
+        moveItemModal.classList.add('visible');
     }
 
     confirmMoveBtn.addEventListener('click', async () => {
         const selectedLink = moveFolderTreeEl.querySelector('a.active');
         if (!selectedLink) return;
         const targetFolderId = selectedLink.dataset.folderId === 'null' ? null : parseInt(selectedLink.dataset.folderId);
+        
+        const items = itemToMove ? [{ id: itemToMove.id, type: itemToMove.type }] : selectedItems;
+        const endpoint = itemToMove ? '{{ url_for("move_item") }}' : '{{ url_for("move_items_bulk") }}';
+        const body = itemToMove 
+            ? { item_id: itemToMove.id, item_type: itemToMove.type, target_folder_id: targetFolderId }
+            : { items: items, target_folder_id: targetFolderId };
 
         try {
-            const response = await fetch('{{ url_for("move_item") }}', {
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ item_id: itemToMove.id, item_type: itemToMove.type, target_folder_id: targetFolderId })
+                body: JSON.stringify(body)
             });
             if (!response.ok) throw new Error('Failed to move item.');
             
@@ -585,14 +710,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     cancelMoveBtn.addEventListener('click', () => {
         moveItemModal.classList.remove('visible');
+        clearSelection(); // Clear selection when cancelling
         itemToMove = null;
     });
 
     moveItemModal.addEventListener('click', (e) => {
         if (e.target === moveItemModal) {
             moveItemModal.classList.remove('visible');
+            itemToMove = null;
+            clearSelection(); // Clear selection when clicking background to hide the action bar
         }
     });
+
 
     let learnSession = {
         flashcards: [],

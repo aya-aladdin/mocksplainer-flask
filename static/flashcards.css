@@ -134,18 +134,18 @@ padding: 0;
     overflow: visible;
 }
 
-.item-card.selected {
-    border-color: var(--accent);
-    background-color: #eef2ff;
-    transform: translateY(0);
-    box-shadow: var(--ring);
-}
-
 .folder-item:hover,
 .flashcard-item:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow);
     border-color: var(--accent);
+}
+
+.item-card.selected {
+    border-color: var(--accent);
+    background-color: #eef2ff;
+    transform: translateY(0);
+    box-shadow: var(--ring);
 }
 
 .item-icon {
@@ -304,7 +304,7 @@ padding: 0;
 
 .bulk-action-bar {
     position: fixed;
-    bottom: -100px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     width: auto;
@@ -315,15 +315,14 @@ padding: 0;
     border-radius: 12px;
     box-shadow: var(--shadow-lg);
     z-index: 999;
-    display: flex;
+    display: none; /* Hidden by default */
     align-items: center;
     justify-content: space-between;
     gap: 20px;
-    transition: bottom 0.3s ease-in-out;
 }
 
 .bulk-action-bar.visible {
-    bottom: 20px;
+    display: flex; /* Shown when visible class is added */
 }
 
 .bulk-action-bar .selection-count {
