@@ -665,43 +665,42 @@ margin-top: 1rem;
 }
 
 .full-width-section {
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    background-color: var(--panel);
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
+    background-color: #f7f4f4; /* Slightly off-white to make borders visible */
+    padding: 4rem 0;
 }
 
-.study-showcase-container {
-    margin-top: 4rem;
-    margin-bottom: 4rem;
+.study-showcase-title {
+    max-width: 1300px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 8px;
+    margin-bottom: 2rem;
 }
 
 .study-showcase {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 0;
     align-items: stretch;
-    margin-top: 2rem;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: var(--shadow-lg);
-}
-
-.accordion-item {
-    border-bottom: 1px solid var(--border);
-}
-
-.accordion-header {
-    padding: 1.5rem;
+    max-width: 1300px;
+    margin: 0 auto;
+    border-left: 2px solid var(--border);
+    border-right: 2px solid var(--border);
 }
 
 .accordion-header {
     width: 100%;
     text-align: left;
-    padding: 1.5rem 0;
+    padding: 1.5rem; /* Consistent padding */
+    padding-right: 3rem;
     border: none;
     background: none;
     cursor: pointer;
+    display: flex; /* To align h3 and icon */
+    justify-content: space-between; /* To push icon to end */
+    align-items: center; /* To vertically center h3 and icon */
 }
 
 .accordion-header h3 {
@@ -709,7 +708,30 @@ margin-top: 1rem;
     font-size: 1.25rem;
     font-weight: 500;
     color: var(--muted);
-    transition: color 0.4s ease;
+    transition: color 0.4s ease; /* Keep transition */
+}
+
+.accordion-toggle-icon {
+    font-size: 1.5rem;
+    font-weight: 300; /* Lighter weight for plus/minus */
+    color: var(--muted);
+    transition: transform 0.3s ease, color 0.4s ease;
+}
+
+.accordion-item.active .accordion-toggle-icon {
+    transform: rotate(45deg); /* Rotate + to X (or -) */
+    color: var(--ink);
+}
+
+.study-accordion {
+    border-right: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Vertically center items */
+}
+
+.study-accordion .accordion-item:last-child {
+    border-bottom: none; /* Remove border from last item */
 }
 
 .accordion-item.active .accordion-header h3 {
@@ -722,7 +744,7 @@ margin-top: 1rem;
     overflow: hidden;
     padding: 0 1.5rem;
     transition: max-height 0.5s ease-in-out, padding-bottom 0.5s ease-in-out;
-}
+} /* Keep this */
 
 .accordion-content p {
     margin: 0;
@@ -735,7 +757,7 @@ margin-top: 1rem;
 }
 
 .study-image-pane {
-    /* Styles moved to parent .study-showcase */
+    /* The image will now fill this container */
 }
 
 .study-image-pane img {
@@ -743,7 +765,8 @@ margin-top: 1rem;
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: opacity 0.5s ease-in-out;
+    opacity: 0.99;
+    filter: blur(1px);
 }
 
 
