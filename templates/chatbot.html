@@ -12,7 +12,6 @@
                     <input type="text" id="chat-input" placeholder="Ask a question...">
                     <button type="submit">Send</button>
                 </form>
-                <button id="generate-flashcards">Generate Flashcards</button>
             </div>
         </div>
     </div>
@@ -21,6 +20,17 @@
         const chatForm = document.getElementById('chat-form');
         const chatInput = document.getElementById('chat-input');
         const chatMessages = document.getElementById('chat-messages');
+
+        function appendMessage(sender, text) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            // A simple markdown-to-html for links
+            text = text.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
+            messageElement.innerHTML = sender === 'user' ? text : text; // Can use a library like 'marked' for full markdown
+            messageElement.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
 
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -32,7 +42,7 @@
             chatInput.value = '';
 
             try {
-                const response = await fetch('/api/chatbot', {
+                const response = await fetch("{{ url_for('chat') }}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -45,45 +55,11 @@
                 }
 
                 const data = await response.json();
-                const botMessage = data.choices[0].message.content;
-                appendMessage('bot', botMessage);
+                appendMessage('bot', data.reply);
 
             } catch (error) {
                 console.error('Error:', error);
                 appendMessage('bot', 'Sorry, something went wrong. Please try again.');
-            }
-        });
-
-        const generateFlashcardsBtn = document.getElementById('generate-flashcards');
-
-        generateFlashcardsBtn.addEventListener('click', async () => {
-            const messages = Array.from(chatMessages.children).map(messageElement => {
-                return {
-                    sender: messageElement.classList.contains('user-message') ? 'user' : 'bot',
-                    message: messageElement.innerText
-                };
-            });
-
-            try {
-                const response = await fetch('/generate_flashcards', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ messages })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to generate flashcards');
-                }
-
-                const data = await response.json();
-                alert(data.message);
-                window.location.href = '{{ url_for("flashcards") }}';
-
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Sorry, something went wrong. Please try again.');
             }
         });
     </script>

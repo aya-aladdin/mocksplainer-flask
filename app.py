@@ -33,17 +33,6 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(250), nullable=False) # Increased size for hashed passwords
     flashcards = db.relationship('Flashcard', backref='owner', lazy=True)
 
-class Question(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    topic = db.Column(db.String(100), nullable=False)
-    difficulty = db.Column(db.String(50), nullable=False) # 'a', 'b', or 'c' for Easy, Medium, Hard
-    question_text = db.Column(db.Text, nullable=False)
-    option_a = db.Column(db.String(250), nullable=False)
-    option_b = db.Column(db.String(250), nullable=False)
-    option_c = db.Column(db.String(250), nullable=False)
-    option_d = db.Column(db.String(250), nullable=False)
-    correct_answer = db.Column(db.String(1), nullable=False) # a, b, c, or d
-
 class Flashcard(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -54,29 +43,6 @@ class Flashcard(db.Model):
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
-# --- Utility Routes (For Data Initialization) ---
-
-@app.route('/add_questions')
-@login_required
-def add_questions():
-    """Adds initial seed questions if the database is empty."""
-    if Question.query.count() > 0:
-        return 'Questions already exist. Skipping initialization.'
-
-    questions = [
-        Question(topic='Math: Algebra', difficulty='a', question_text='Solve for x: $3x - 7 = 14$', option_a='7', option_b='5', option_c='21', option_d='3', correct_answer='a'),
-        Question(topic='Math: Algebra', difficulty='b', question_text='Factorise: $y^2 - 16$', option_a='$(y-4)(y+4)$', option_b='$(y-8)(y+2)$', option_c='$(y-4)^2$', option_d='$(y+4)^2$', correct_answer='a'),
-        Question(topic='Math: Geometry', difficulty='a', question_text='What is the sum of interior angles in a hexagon?', option_a='540°', option_b='720°', option_c='360°', option_d='900°', correct_answer='b'),
-        Question(topic='Physics: Forces', difficulty='a', question_text='Which unit measures Force?', option_a='Joule', option_b='Watt', option_c='Newton', option_d='Pascal', correct_answer='c'),
-        Question(topic='Physics: Forces', difficulty='b', question_text='State Newton\'s First Law of Motion.', option_a='F=ma', option_b='Every action has an equal and opposite reaction.', option_c='An object remains at rest unless acted upon by a resultant force.', option_d='Energy cannot be created or destroyed.', correct_answer='c'),
-        Question(topic='Biology: Cells', difficulty='c', question_text='Explain the function of the ribosome.', option_a='Respiration', option_b='Photosynthesis', option_c='Protein synthesis', option_d='Stores genetic material', correct_answer='c'),
-        Question(topic='Chemistry: Stoichiometry', difficulty='b', question_text='What is the molar mass of $H_{2}O$?', option_a='16 g/mol', option_b='18 g/mol', option_c='1 g/mol', option_d='20 g/mol', correct_answer='b')
-    ]
-
-    db.session.bulk_save_objects(questions)
-    db.session.commit()
-    return 'Initial IGCSE Questions added to DB!'
 
 # --- API for Frontend Persistence ---
 
@@ -131,7 +97,7 @@ def chat():
             "You are IGCSE TutorBot, an extremely helpful and strict assistant for students studying IGCSE "
             "level content. Your responses must be concise, straightforward, and delivered as the final answer only. "
             "Do not include any reasoning, thoughts, or conversational filler. "
-            "Your responses should be in Markdown format. Always include a reminder to check the question bank: [Explore the Question Bank](/question-bank)"
+            "Your responses should be in Markdown format."
         )
         
         req = urllib.request.Request(
@@ -225,8 +191,7 @@ def index():
 @app.route('/profile')
 @login_required
 def profile():
-    subjects = [topic[0] for topic in Question.query.with_entities(Question.topic).distinct().all()]
-    return render_template('profile.html', subjects=subjects)
+    return render_template('profile.html')
 
 @app.route('/chatbot')
 @login_required
@@ -240,164 +205,9 @@ def flashcards():
     user_flashcards = Flashcard.query.filter_by(user_id=current_user.id).order_by(Flashcard.topic).all()
     return render_template('flashcards.html', flashcards=user_flashcards)
 
-@app.route('/mock-exam', methods=['GET', 'POST'])
-@login_required
-def mock_exam():
-    topics = [topic[0] for topic in Question.query.with_entities(Question.topic).distinct().all()]
-    questions = []
-    submitted = False
-    score = 0
-    total_questions = 0
-
-    if request.method == 'POST':
-        topic = request.form.get('topic')
-        num_questions = int(request.form.get('num_questions', 0))
-
-        if topic and num_questions > 0:
-            questions = Question.query.filter_by(topic=topic).order_by(db.func.random()).limit(num_questions).all()
-            
-            # If the user submitted answers, calculate score
-            if 'submit_exam' in request.form:
-                submitted = True
-                total_questions = len(questions)
-                form_data = request.form
-                for q in questions:
-                    if form_data.get(f'question_{q.id}') == q.correct_answer:
-                        score += 1
-
-                flash(f'Exam submitted! You scored {score} out of {total_questions}!', 'success')
-                # Redirect to GET to prevent form resubmission
-                return redirect(url_for('mock_exam', submitted=True, score=score, total=total_questions))
-        
-        # If redirect happens due to submission, pull flash messages
-        if request.args.get('submitted'):
-            score = int(request.args.get('score'))
-            total_questions = int(request.args.get('total'))
-
-    # Retrieve questions based on selection or prepare for initial view
-    questions_for_display = Question.query.all()
-    
-    return render_template('mock_exam.html', 
-                           topics=topics, 
-                           questions=questions_for_display,
-                           score=score, 
-                           total_questions=total_questions,
-                           submitted=submitted)
-
-@app.route('/level-test', methods=['GET', 'POST'])
-@login_required
-def level_test():
-    if request.method == 'POST':
-        score = 0
-        form_data = request.form
-        # Get all question IDs from the hidden fields
-        all_q_ids = [k.split('_')[1] for k in form_data.keys() if k.startswith('question_')]
-        
-        # We need to query the questions submitted based on their IDs
-        questions_submitted = Question.query.filter(Question.id.in_(all_q_ids)).all()
-        
-        for q in questions_submitted:
-            if form_data.get(f'question_{q.id}') == q.correct_answer:
-                score += 1
-        
-        total_questions = len(questions_submitted)
-        percentage_score = (score / total_questions) * 100 if total_questions > 0 else 0
-
-        recommendation = ""
-        if percentage_score < 50:
-            recommendation = "You should focus on the basics (Easy level). Start building strong foundational knowledge."
-        elif 50 <= percentage_score < 80:
-            recommendation = "You have a good understanding (Medium level). Time to practice more complex problems."
-        else:
-            recommendation = "You have a strong understanding (Hard level). Challenge yourself with the hardest questions!"
-
-        flash(f'Level Test Score: {score} out of {total_questions} ({percentage_score:.1f}%)', 'success')
-        flash(f'Recommendation: {recommendation}', 'info')
-        # Redirect to GET to show results
-        return redirect(url_for('level_test', show_results='true', score=score, total=total_questions))
-
-    # Initial GET or post-submission redirect
-    questions = Question.query.order_by(db.func.random()).limit(5).all() # 5 random questions for the test
-    show_results = request.args.get('show_results') == 'true'
-    score = request.args.get('score', 0, type=int)
-    total_questions = request.args.get('total', 5, type=int)
-
-    return render_template('level_test.html', questions=questions, show_results=show_results, score=score, total_questions=total_questions)
-
-
-@app.route('/question-bank', methods=['GET', 'POST'])
-@login_required
-def question_bank():
-    topics = sorted([topic[0] for topic in Question.query.with_entities(Question.topic).distinct().all()])
-    questions = []
-    
-    selected_topic = request.args.get('topic') or request.form.get('topic')
-    selected_difficulty = request.args.get('difficulty') or request.form.get('difficulty')
-    
-    query = Question.query.order_by(Question.topic, Question.difficulty)
-    
-    if selected_topic and selected_topic != 'All Topics':
-        query = query.filter_by(topic=selected_topic)
-    
-    # 'a' (Easy), 'b' (Medium), 'c' (Hard)
-    if selected_difficulty and selected_difficulty != 'All Difficulties':
-        query = query.filter_by(difficulty=selected_difficulty)
-        
-    questions = query.all()
-
-    return render_template('question_bank.html', 
-                           topics=topics, 
-                           questions=questions, 
-                           selected_topic=selected_topic, 
-                           selected_difficulty=selected_difficulty)
-
-@app.route('/add-question', methods=['GET', 'POST'])
-@login_required
-def add_question():
-    if request.method == 'POST':
-        topic = request.form.get('topic')
-        difficulty = request.form.get('difficulty')
-        question_text = request.form.get('question_text')
-        option_a = request.form.get('option_a')
-        option_b = request.form.get('option_b')
-        option_c = request.form.get('option_c')
-        option_d = request.form.get('option_d')
-        correct_answer = request.form.get('correct_answer').lower() # ensure lowercase for a, b, c, d
-
-        new_question = Question(
-            topic=topic,
-            difficulty=difficulty,
-            question_text=question_text,
-            option_a=option_a,
-            option_b=option_b,
-            option_c=option_c,
-            option_d=option_d,
-            correct_answer=correct_answer
-        )
-
-        db.session.add(new_question)
-        db.session.commit()
-        flash('Question added successfully!', 'success')
-        return redirect(url_for('question_bank'))
-
-    return render_template('add_question.html')
-
 
 if __name__ == '__main__':
     with app.app_context():
         # Creates tables and adds initial data if not present
         db.create_all()
-        # Initial data load
-        if Question.query.count() == 0:
-            questions = [
-                Question(topic='Math: Algebra', difficulty='a', question_text='Solve for x: $3x - 7 = 14$', option_a='7', option_b='5', option_c='21', option_d='3', correct_answer='a'),
-                Question(topic='Math: Algebra', difficulty='b', question_text='Factorise: $y^2 - 16$', option_a='$(y-4)(y+4)$', option_b='$(y-8)(y+2)$', option_c='$(y-4)^2$', option_d='$(y+4)^2$', correct_answer='a'),
-                Question(topic='Math: Geometry', difficulty='a', question_text='What is the sum of interior angles in a hexagon?', option_a='540°', option_b='720°', option_c='360°', option_d='900°', correct_answer='b'),
-                Question(topic='Physics: Forces', difficulty='a', question_text='Which unit measures Force?', option_a='Joule', option_b='Watt', option_c='Newton', option_d='Pascal', correct_answer='c'),
-                Question(topic='Physics: Forces', difficulty='b', question_text='State Newton\'s First Law of Motion.', option_a='F=ma', option_b='Every action has an equal and opposite reaction.', option_c='An object remains at rest unless acted upon by a resultant force.', option_d='Energy cannot be created or destroyed.', correct_answer='c'),
-                Question(topic='Biology: Cells', difficulty='c', question_text='Explain the function of the ribosome.', option_a='Respiration', option_b='Photosynthesis', option_c='Protein synthesis', option_d='Stores genetic material', correct_answer='c'),
-                Question(topic='Chemistry: Stoichiometry', difficulty='b', question_text='What is the molar mass of $H_{2}O$?', option_a='16 g/mol', option_b='18 g/mol', option_c='1 g/mol', option_d='20 g/mol', correct_answer='b')
-            ]
-            db.session.bulk_save_objects(questions)
-            db.session.commit()
     app.run(debug=True, port=5001)
