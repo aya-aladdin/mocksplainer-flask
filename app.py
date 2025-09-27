@@ -1,34 +1,48 @@
+import os
+import json
+import urllib.request # Added for Hack Club API calls
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
-import requests
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'  # Change this!
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
+# --- Hack Club AI Configuration ---
+HACKCLUB_API_URL = "https://ai.hackclub.com/chat/completions"
+# Placeholder for context that the LLM can use, set to IGCSE context
+IGCSE_INFO_TEXT = "The user is studying IGCSE level content in Math, Physics, Biology, and Chemistry. Focus your answers on curriculum topics."
+# --- End AI Configuration ---
 
+
+app = Flask(__name__)
+# IMPORTANT: Use a secure, complex key in a real application.
+app.config['SECRET_KEY'] = 'super_secret_and_complex_key_for_igcse_app'
+# Using sqlite for persistence
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///igcse_study.sqlite3'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
+# --- Database Models ---
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
+    password = db.Column(db.String(250), nullable=False) # Increased size for hashed passwords
+    flashcards = db.relationship('Flashcard', backref='owner', lazy=True)
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     topic = db.Column(db.String(100), nullable=False)
-    difficulty = db.Column(db.String(50), nullable=False)
+    difficulty = db.Column(db.String(50), nullable=False) # 'a', 'b', or 'c' for Easy, Medium, Hard
     question_text = db.Column(db.Text, nullable=False)
-    option_a = db.Column(db.String(200), nullable=False)
-    option_b = db.Column(db.String(200), nullable=False)
-    option_c = db.Column(db.String(200), nullable=False)
-    option_d = db.Column(db.String(200), nullable=False)
-    correct_answer = db.Column(db.String(1), nullable=False)
+    option_a = db.Column(db.String(250), nullable=False)
+    option_b = db.Column(db.String(250), nullable=False)
+    option_c = db.Column(db.String(250), nullable=False)
+    option_d = db.Column(db.String(250), nullable=False)
+    correct_answer = db.Column(db.String(1), nullable=False) # a, b, c, or d
 
 class Flashcard(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -41,76 +55,234 @@ class Flashcard(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# --- Utility Routes (For Data Initialization) ---
+
+@app.route('/add_questions')
+@login_required
+def add_questions():
+    """Adds initial seed questions if the database is empty."""
+    if Question.query.count() > 0:
+        return 'Questions already exist. Skipping initialization.'
+
+    questions = [
+        Question(topic='Math: Algebra', difficulty='a', question_text='Solve for x: $3x - 7 = 14$', option_a='7', option_b='5', option_c='21', option_d='3', correct_answer='a'),
+        Question(topic='Math: Algebra', difficulty='b', question_text='Factorise: $y^2 - 16$', option_a='$(y-4)(y+4)$', option_b='$(y-8)(y+2)$', option_c='$(y-4)^2$', option_d='$(y+4)^2$', correct_answer='a'),
+        Question(topic='Math: Geometry', difficulty='a', question_text='What is the sum of interior angles in a hexagon?', option_a='540°', option_b='720°', option_c='360°', option_d='900°', correct_answer='b'),
+        Question(topic='Physics: Forces', difficulty='a', question_text='Which unit measures Force?', option_a='Joule', option_b='Watt', option_c='Newton', option_d='Pascal', correct_answer='c'),
+        Question(topic='Physics: Forces', difficulty='b', question_text='State Newton\'s First Law of Motion.', option_a='F=ma', option_b='Every action has an equal and opposite reaction.', option_c='An object remains at rest unless acted upon by a resultant force.', option_d='Energy cannot be created or destroyed.', correct_answer='c'),
+        Question(topic='Biology: Cells', difficulty='c', question_text='Explain the function of the ribosome.', option_a='Respiration', option_b='Photosynthesis', option_c='Protein synthesis', option_d='Stores genetic material', correct_answer='c'),
+        Question(topic='Chemistry: Stoichiometry', difficulty='b', question_text='What is the molar mass of $H_{2}O$?', option_a='16 g/mol', option_b='18 g/mol', option_c='1 g/mol', option_d='20 g/mol', correct_answer='b')
+    ]
+
+    db.session.bulk_save_objects(questions)
+    db.session.commit()
+    return 'Initial IGCSE Questions added to DB!'
+
+# --- API for Frontend Persistence ---
+
+@app.route('/save_flashcards', methods=['POST'])
+@login_required
+def save_flashcards():
+    """
+    Saves flashcards generated by the frontend LLM call (or manually created) 
+    to the database for the current logged-in user.
+    """
+    try:
+        data = request.get_json()
+        flashcards_data = data.get('flashcards', [])
+
+        if not flashcards_data:
+            return jsonify({'message': 'No flashcards provided to save.'}), 200
+
+        new_flashcards = []
+        for fc in flashcards_data:
+            # Assuming the flashcards sent from the frontend have 'topic', 'question', and 'answer'
+            new_flashcard = Flashcard(
+                user_id=current_user.id,
+                topic=fc.get('topic', 'Unassigned'),
+                question=fc.get('question'),
+                answer=fc.get('answer')
+            )
+            new_flashcards.append(new_flashcard)
+
+        db.session.bulk_save_objects(new_flashcards)
+        db.session.commit()
+        return jsonify({'message': f'{len(new_flashcards)} flashcards saved successfully!'})
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error saving flashcards: {e}")
+        return jsonify({'error': 'Failed to save flashcards due to a server error.'}), 500
+
+# --- Hack Club AI Chat Endpoint ---
+
+@app.route("/chat", methods=["POST"])
+@login_required # Protect the API endpoint
+def chat():
+    data = request.get_json()
+    user_message = data.get("message", "").strip()
+
+    if not user_message:
+        return jsonify({"reply": "⚠️ Please type a message."})
+
+    try:
+        # System Instruction for the IGCSE TutorBot
+        system_content = (
+            "You are IGCSE TutorBot, an extremely helpful and strict assistant for students studying IGCSE "
+            "level content. Your responses must be concise, straightforward, and delivered as the final answer only. "
+            "Do not include any reasoning, thoughts, or conversational filler. "
+            "Your responses should be in Markdown format. Always include a reminder to check the question bank: [Explore the Question Bank](/question-bank)"
+        )
+        
+        req = urllib.request.Request(
+            HACKCLUB_API_URL,
+            data=json.dumps({
+                "model": "gpt-4o-mini",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": system_content
+                    },
+                    {
+                        "role": "user",
+                        "content": IGCSE_INFO_TEXT + "\n" + user_message + " (Do not include any reasoning or internal thought process in your final output.)"
+                    }
+                ],
+                "max_tokens": 400
+            }).encode('utf-8'),
+            headers={'Content-Type': 'application/json'}
+        )
+        with urllib.request.urlopen(req) as response:
+            if response.status == 200:
+                response_data = json.loads(response.read().decode('utf-8'))
+                # Extract the reply from the Hack Club API response structure
+                reply = response_data['choices'][0]['message']['content']
+                
+                return jsonify({"reply": reply})
+            else:
+                # Read error response body if available
+                error_body = response.read().decode('utf-8', errors='ignore')
+                print(f"Hack Club API Error Status {response.status}: {error_body}")
+                return jsonify({"reply": "⚠️ Error connecting to Hack Club AI API."})
+
+    except urllib.error.HTTPError as e:
+        # Catch specific HTTP errors
+        print(f"HTTP Error: {e.code}, {e.read().decode('utf-8', errors='ignore')}")
+        return jsonify({"reply": "⚠️ Error connecting to Hack Club AI API due to an HTTP error."})
+    except Exception as e:
+        print("General Error:", e)
+        return jsonify({"reply": "⚠️ An unexpected error occurred while processing the request."})
+
+# --- Authentication Routes ---
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
+    if request.method == 'POST':
+        user = User.query.filter_by(username=request.form['username']).first()
+        if user and check_password_hash(user.password, request.form['password']):
+            login_user(user, remember=True)
+            return redirect(url_for('profile'))
+        flash('Invalid username or password', 'error')
+    return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
+    if request.method == 'POST':
+        try:
+            hashed_password = generate_password_hash(request.form['password'], method='pbkdf2:sha256')
+            new_user = User(username=request.form['username'], email=request.form['email'], password=hashed_password)
+            db.session.add(new_user)
+            db.session.commit()
+            flash('Account created successfully! You are now logged in.', 'success')
+            login_user(new_user)
+            return redirect(url_for('profile'))
+        except Exception as e:
+            db.session.rollback()
+            flash('Registration failed. Username or Email might already be taken.', 'error')
+            print(f"Registration Error: {e}")
+            return redirect(url_for('register'))
+    return render_template('register.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('index'))
+
+# --- Application Routes ---
+
 @app.route('/')
 def index():
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
     return render_template('index.html')
 
+@app.route('/profile')
+@login_required
+def profile():
+    subjects = [topic[0] for topic in Question.query.with_entities(Question.topic).distinct().all()]
+    return render_template('profile.html', subjects=subjects)
+
 @app.route('/chatbot')
+@login_required
 def chatbot():
+    # Renders the chatbot interface, which will make POST requests to the new /chat endpoint
     return render_template('chatbot.html')
+
+@app.route('/flashcards')
+@login_required
+def flashcards():
+    user_flashcards = Flashcard.query.filter_by(user_id=current_user.id).order_by(Flashcard.topic).all()
+    return render_template('flashcards.html', flashcards=user_flashcards)
 
 @app.route('/mock-exam', methods=['GET', 'POST'])
 @login_required
 def mock_exam():
     topics = [topic[0] for topic in Question.query.with_entities(Question.topic).distinct().all()]
-    questions = None
+    questions = []
+    submitted = False
+    score = 0
+    total_questions = 0
 
     if request.method == 'POST':
         topic = request.form.get('topic')
-        num_questions = int(request.form.get('num_questions'))
+        num_questions = int(request.form.get('num_questions', 0))
 
-        questions = Question.query.filter_by(topic=topic).limit(num_questions).all()
+        if topic and num_questions > 0:
+            questions = Question.query.filter_by(topic=topic).order_by(db.func.random()).limit(num_questions).all()
+            
+            # If the user submitted answers, calculate score
+            if 'submit_exam' in request.form:
+                submitted = True
+                total_questions = len(questions)
+                form_data = request.form
+                for q in questions:
+                    if form_data.get(f'question_{q.id}') == q.correct_answer:
+                        score += 1
 
-    return render_template('mock_exam.html', topics=topics, questions=questions)
-
-@app.route('/submit_exam', methods=['POST'])
-@login_required
-def submit_exam():
-    score = 0
-    form_data = request.form
-    question_ids = [key.split('_')[1] for key in form_data.keys()]
-
-    for q_id in question_ids:
-        question = Question.query.get(q_id)
-        if question and form_data.get(f'question_{q_id}') == question.correct_answer:
-            score += 1
-
-    flash(f'You scored {score} out of {len(question_ids)}!')
-    return redirect(url_for('mock_exam'))
-
-@app.route('/generate_flashcards', methods=['POST'])
-@login_required
-def generate_flashcards():
-    data = request.get_json()
-    messages = data.get('messages')
-
-    # Dummy implementation: create one flashcard from the last user message
-    if messages:
-        last_user_message = None
-        for msg in reversed(messages):
-            if msg['sender'] == 'user':
-                last_user_message = msg['message']
-                break
+                flash(f'Exam submitted! You scored {score} out of {total_questions}!', 'success')
+                # Redirect to GET to prevent form resubmission
+                return redirect(url_for('mock_exam', submitted=True, score=score, total=total_questions))
         
-        if last_user_message:
-            # A more sophisticated implementation would use an LLM to extract key info
-            flashcard = Flashcard(
-                user_id=current_user.id,
-                topic="Chatbot Session",
-                question=last_user_message,
-                answer="This is a dummy answer."
-            )
-            db.session.add(flashcard)
-            db.session.commit()
-            return jsonify({'message': 'Flashcards generated successfully!'})
+        # If redirect happens due to submission, pull flash messages
+        if request.args.get('submitted'):
+            score = int(request.args.get('score'))
+            total_questions = int(request.args.get('total'))
 
-    return jsonify({'error': 'Failed to generate flashcards'}), 400
-
-@app.route('/flashcards')
-@login_required
-def flashcards():
-    flashcards = Flashcard.query.filter_by(user_id=current_user.id).all()
-    return render_template('flashcards.html', flashcards=flashcards)
+    # Retrieve questions based on selection or prepare for initial view
+    questions_for_display = Question.query.all()
+    
+    return render_template('mock_exam.html', 
+                           topics=topics, 
+                           questions=questions_for_display,
+                           score=score, 
+                           total_questions=total_questions,
+                           submitted=submitted)
 
 @app.route('/level-test', methods=['GET', 'POST'])
 @login_required
@@ -118,52 +290,66 @@ def level_test():
     if request.method == 'POST':
         score = 0
         form_data = request.form
-        question_ids = [key.split('_')[1] for key in form_data.keys()]
-
-        for q_id in question_ids:
-            question = Question.query.get(q_id)
-            if question and form_data.get(f'question_{q_id}') == question.correct_answer:
+        # Get all question IDs from the hidden fields
+        all_q_ids = [k.split('_')[1] for k in form_data.keys() if k.startswith('question_')]
+        
+        # We need to query the questions submitted based on their IDs
+        questions_submitted = Question.query.filter(Question.id.in_(all_q_ids)).all()
+        
+        for q in questions_submitted:
+            if form_data.get(f'question_{q.id}') == q.correct_answer:
                 score += 1
         
-        total_questions = len(question_ids)
-        percentage_score = (score / total_questions) * 100
+        total_questions = len(questions_submitted)
+        percentage_score = (score / total_questions) * 100 if total_questions > 0 else 0
 
         recommendation = ""
         if percentage_score < 50:
-            recommendation = "You should focus on the basics. Try the easy questions in the question bank."
+            recommendation = "You should focus on the basics (Easy level). Start building strong foundational knowledge."
         elif 50 <= percentage_score < 80:
-            recommendation = "You have a good understanding. Try the medium questions in the question bank."
+            recommendation = "You have a good understanding (Medium level). Time to practice more complex problems."
         else:
-            recommendation = "You have a strong understanding. Try the hard questions in the question bank."
+            recommendation = "You have a strong understanding (Hard level). Challenge yourself with the hardest questions!"
 
-        flash(f'You scored {score} out of {total_questions}!')
-        flash(recommendation)
-        return redirect(url_for('level_test'))
+        flash(f'Level Test Score: {score} out of {total_questions} ({percentage_score:.1f}%)', 'success')
+        flash(f'Recommendation: {recommendation}', 'info')
+        # Redirect to GET to show results
+        return redirect(url_for('level_test', show_results='true', score=score, total=total_questions))
 
-    questions = Question.query.order_by(db.func.random()).limit(5).all()
-    return render_template('level_test.html', questions=questions)
+    # Initial GET or post-submission redirect
+    questions = Question.query.order_by(db.func.random()).limit(5).all() # 5 random questions for the test
+    show_results = request.args.get('show_results') == 'true'
+    score = request.args.get('score', 0, type=int)
+    total_questions = request.args.get('total', 5, type=int)
+
+    return render_template('level_test.html', questions=questions, show_results=show_results, score=score, total_questions=total_questions)
+
 
 @app.route('/question-bank', methods=['GET', 'POST'])
 @login_required
 def question_bank():
-    topics = [topic[0] for topic in Question.query.with_entities(Question.topic).distinct().all()]
-    questions = None
-
-    if request.method == 'POST':
-        topic = request.form.get('topic')
-        difficulty = request.form.get('difficulty')
-
-        query = Question.query
-        if topic:
-            query = query.filter_by(topic=topic)
-        if difficulty:
-            query = query.filter_by(difficulty=difficulty)
+    topics = sorted([topic[0] for topic in Question.query.with_entities(Question.topic).distinct().all()])
+    questions = []
+    
+    selected_topic = request.args.get('topic') or request.form.get('topic')
+    selected_difficulty = request.args.get('difficulty') or request.form.get('difficulty')
+    
+    query = Question.query.order_by(Question.topic, Question.difficulty)
+    
+    if selected_topic and selected_topic != 'All Topics':
+        query = query.filter_by(topic=selected_topic)
+    
+    # 'a' (Easy), 'b' (Medium), 'c' (Hard)
+    if selected_difficulty and selected_difficulty != 'All Difficulties':
+        query = query.filter_by(difficulty=selected_difficulty)
         
-        questions = query.all()
-    else:
-        questions = Question.query.all()
+    questions = query.all()
 
-    return render_template('question_bank.html', topics=topics, questions=questions)
+    return render_template('question_bank.html', 
+                           topics=topics, 
+                           questions=questions, 
+                           selected_topic=selected_topic, 
+                           selected_difficulty=selected_difficulty)
 
 @app.route('/add-question', methods=['GET', 'POST'])
 @login_required
@@ -176,7 +362,7 @@ def add_question():
         option_b = request.form.get('option_b')
         option_c = request.form.get('option_c')
         option_d = request.form.get('option_d')
-        correct_answer = request.form.get('correct_answer')
+        correct_answer = request.form.get('correct_answer').lower() # ensure lowercase for a, b, c, d
 
         new_question = Question(
             topic=topic,
@@ -191,91 +377,27 @@ def add_question():
 
         db.session.add(new_question)
         db.session.commit()
-        flash('Question added successfully!')
+        flash('Question added successfully!', 'success')
         return redirect(url_for('question_bank'))
 
     return render_template('add_question.html')
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('profile'))
-    if request.method == 'POST':
-        user = User.query.filter_by(username=request.form['username']).first()
-        if user and check_password_hash(user.password, request.form['password']):
-            login_user(user)
-            return redirect(url_for('profile'))
-        flash('Invalid username or password')
-    return render_template('login.html')
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('profile'))
-    if request.method == 'POST':
-        hashed_password = generate_password_hash(request.form['password'])
-        new_user = User(username=request.form['username'], email=request.form['email'], password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-        flash('Account created successfully!')
-        login_user(new_user)  # Log in the user after registration
-        return redirect(url_for('profile'))
-    return render_template('register.html')
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
-
-@app.route('/profile')
-@login_required
-def profile():
-    subjects = [topic[0] for topic in Question.query.with_entities(Question.topic).distinct().all()]
-    return render_template('profile.html', username=current_user.username, subjects=subjects)
-
-@app.route('/api/chatbot', methods=['POST'])
-@login_required
-def api_chatbot():
-    data = request.get_json()
-    message = data.get('message')
-
-    if not message:
-        return jsonify({'error': 'No message provided'}), 400
-
-    try:
-        response = requests.post(
-            'https://api.hackclub.com/v1/chats/completions',
-            headers={
-                'Authorization': 'Bearer YOUR_HACK_CLUB_API_KEY',  # Replace with your actual API key
-                'Content-Type': 'application/json'
-            },
-            json={
-                'model': 'gpt-3.5-turbo',
-                'messages': [
-                    {'role': 'system', 'content': 'You are a helpful IGCSE tutor.'},
-                    {'role': 'user', 'content': message}
-                ]
-            }
-        )
-        response.raise_for_status()  # Raise an exception for bad status codes
-        return jsonify(response.json())
-    except requests.exceptions.RequestException as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/add_questions')
-@login_required
-def add_questions():
-    questions = [
-        Question(topic='Algebra', difficulty='Easy', question_text='Solve for x: 2x + 5 = 15', option_a='5', option_b='10', option_c='2.5', option_d='7.5', correct_answer='a'),
-        Question(topic='Algebra', difficulty='Medium', question_text='Factorise: x^2 - 9', option_a='(x-3)(x+3)', option_b='(x-9)(x+1)', option_c='(x-3)(x-3)', option_d='(x+3)(x+3)', correct_answer='a'),
-        Question(topic='Geometry', difficulty='Easy', question_text='What is the sum of angles in a triangle?', option_a='180 degrees', option_b='360 degrees', option_c='90 degrees', option_d='270 degrees', correct_answer='a')
-    ]
-    db.session.bulk_save_objects(questions)
-    db.session.commit()
-    return 'Questions added!'
 
 if __name__ == '__main__':
     with app.app_context():
+        # Creates tables and adds initial data if not present
         db.create_all()
-    app.run(debug=True)
+        # Initial data load
+        if Question.query.count() == 0:
+            questions = [
+                Question(topic='Math: Algebra', difficulty='a', question_text='Solve for x: $3x - 7 = 14$', option_a='7', option_b='5', option_c='21', option_d='3', correct_answer='a'),
+                Question(topic='Math: Algebra', difficulty='b', question_text='Factorise: $y^2 - 16$', option_a='$(y-4)(y+4)$', option_b='$(y-8)(y+2)$', option_c='$(y-4)^2$', option_d='$(y+4)^2$', correct_answer='a'),
+                Question(topic='Math: Geometry', difficulty='a', question_text='What is the sum of interior angles in a hexagon?', option_a='540°', option_b='720°', option_c='360°', option_d='900°', correct_answer='b'),
+                Question(topic='Physics: Forces', difficulty='a', question_text='Which unit measures Force?', option_a='Joule', option_b='Watt', option_c='Newton', option_d='Pascal', correct_answer='c'),
+                Question(topic='Physics: Forces', difficulty='b', question_text='State Newton\'s First Law of Motion.', option_a='F=ma', option_b='Every action has an equal and opposite reaction.', option_c='An object remains at rest unless acted upon by a resultant force.', option_d='Energy cannot be created or destroyed.', correct_answer='c'),
+                Question(topic='Biology: Cells', difficulty='c', question_text='Explain the function of the ribosome.', option_a='Respiration', option_b='Photosynthesis', option_c='Protein synthesis', option_d='Stores genetic material', correct_answer='c'),
+                Question(topic='Chemistry: Stoichiometry', difficulty='b', question_text='What is the molar mass of $H_{2}O$?', option_a='16 g/mol', option_b='18 g/mol', option_c='1 g/mol', option_d='20 g/mol', correct_answer='b')
+            ]
+            db.session.bulk_save_objects(questions)
+            db.session.commit()
+    app.run(debug=True, port=5001)

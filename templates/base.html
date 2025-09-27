@@ -9,25 +9,27 @@
 <body>
     <div class="topbar">
         <div class="logo">
-            <a href="/" style="color: var(--ink);"><span>IGCSE Platform</span></a>
+            <a href="{{ url_for('index') }}" style="color: var(--ink);"><span>IGCSE MockSplainer</span></a>
         </div>
-            <ul class="navbar-nav ml-auto">
-                {% if current_user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('register') }}">Register</a>
-                    </li>
-                {% endif %}
-            </ul>
+        <nav class="nav">
+            {% if current_user.is_authenticated %}
+                <div class="nav-dropdown">
+                    <button class="nav-link dropdown-toggle">Study Tools</button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('chatbot') }}">Chatbot Tutor</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('mock_exam') }}">Mock Exam Generator</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('flashcards') }}">Flashcards System</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('level_test') }}">Level Tester</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('question_bank') }}">Personalised Question Bank</a></li>
+                    </ul>
+                </div>
+                <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
+                <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+            {% endif %}
+        </nav>
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
