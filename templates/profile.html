@@ -24,54 +24,110 @@
         </div>
         <div class="card">
             <div class="pad">
-                <div class="stat-value">0</div>
+                <div class="stat-value">{{ total_questions_answered }}</div>
                 <div class="stat-label">Questions Answered</div>
             </div>
         </div>
     </div>
 
     <!-- Main Dashboard Content -->
-    <div class="grid dashboard-main-grid">
-        <!-- Topic Performance -->
+    <div class="grid dashboard-section-grid">
+        <!-- Topic Distribution Chart -->
         <div class="card">
             <div class="pad">
-                <h3 class="card-section-title">Topic Performance</h3>
-                {% if topic_performance %}
-                <ul class="performance-list">
-                    {% for item in topic_performance %}
-                    <li>
-                        <span class="topic-name">{{ item.topic }}</span>
-                        <div class="progress-bar-container">
-                            <div class="progress-bar" style="width: {{ item.accuracy }}%;"></div>
-                        </div>
-                        <span class="accuracy-label">{{ item.accuracy }}%</span>
-                    </li>
-                    {% endfor %}
-                </ul>
+                <h3 class="card-section-title">Topic Distribution</h3>
+                {% if topics_data %}
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="topicsPieChart"></canvas>
+                </div>
                 {% else %}
-                <p class="muted">Your performance will appear here after you complete a learning session.</p>
+                <p class="muted">A chart of your topics will appear here once you create flashcards.</p>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Recently Studied -->
+        <!-- Recently Studied Decks -->
         <div class="card">
             <div class="pad">
-                <h3 class="card-section-title">Recently Studied</h3>
-                {% if recent_flashcards %}
+                <h3 class="card-section-title">Recently Studied Decks</h3>
+                {% if recent_folders %}
                 <ul class="activity-list">
-                    {% for fc in recent_flashcards %}
+                    {% for folder in recent_folders %}
                     <li>
-                        <strong>{{ fc.topic }}:</strong> {{ fc.question | truncate(50) }}
+                        <a href="{{ url_for('flashcards') }}#folder-{{ folder.id }}" class="activity-link">
+                            <span class="folder-icon-sm">{{ folder.icon }}</span>
+                            <span>{{ folder.name }}</span>
+                        </a>
                     </li>
                     {% endfor %}
                 </ul>
                 <a href="{{ url_for('flashcards') }}" class="btn-link">View all flashcards &rarr;</a>
                 {% else %}
-                <p class="muted">Your recently studied flashcards will appear here.</p>
+                <p class="muted">Your recently studied decks will appear here.</p>
                 {% endif %}
             </div>
         </div>
     </div>
+
+    <!-- Topic Performance Leaderboard -->
+    <div class="card leaderboard-card">
+        <div class="pad">
+            <h3 class="card-section-title">Topic Performance Leaderboard</h3>
+            {% if topic_performance %}
+            <ul class="performance-list">
+                {% for item in topic_performance %}
+                <li>
+                    <span class="topic-name">{{ item.topic }}</span>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: {{ item.accuracy }}%;"></div>
+                    </div>
+                    <span class="accuracy-label">{{ item.accuracy }}%</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="muted">Your performance will appear here after you complete a learning session.</p>
+            {% endif %}
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const topicsData = {{ topics_data | tojson | safe }};
+        const labels = Object.keys(topicsData);
+        const data = Object.values(topicsData);
+
+        if (labels.length > 0) {
+            const ctx = document.getElementById('topicsPieChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Flashcards per Topic',
+                        data: data,
+                        backgroundColor: ['#3b82f6', '#ef4444', '#22c55e', '#f97316', '#8b5cf6', '#fde047', '#ec4899', '#14b8a6'],
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

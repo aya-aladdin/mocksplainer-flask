@@ -343,6 +343,23 @@
     gap: 10px;
 }
 
+/* --- Profile Page Additions --- */
+.dashboard-section-grid {
+    grid-template-columns: 1fr 1fr;
+    margin-bottom: 2rem;
+}
+
+.leaderboard-card {
+    margin-bottom: 2rem;
+}
+
+.activity-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
 /* --- Profile Page Performance List --- */
 .performance-list { list-style: none; padding: 0; margin: 0; }
 .performance-list li { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; }

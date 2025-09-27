@@ -484,8 +484,16 @@ def profile():
     total_flashcards = Flashcard.query.filter_by(user_id=current_user.id).count()
     
     # Calculate topic performance
-    attempts = FlashcardAttempt.query.join(Flashcard).filter(Flashcard.user_id == current_user.id).all()
+    attempts = db.session.query(FlashcardAttempt).join(Flashcard).filter(Flashcard.user_id == current_user.id).all()
+    total_questions_answered = len(attempts)
+
+    # For Pie Chart: Topic Distribution
+    user_flashcards = Flashcard.query.filter_by(user_id=current_user.id).all()
     topics_dict = {}
+    for fc in user_flashcards:
+        topics_dict[fc.topic] = topics_dict.get(fc.topic, 0) + 1
+
+    # For Leaderboard: Topic Performance
     performance_data = {}
     for attempt in attempts:
         topic = attempt.flashcard.topic
@@ -502,10 +510,20 @@ def profile():
         topic_performance.append({'topic': topic, 'accuracy': round(accuracy)})
     topic_performance.sort(key=lambda x: x['accuracy'], reverse=True)
 
-    # Get recently studied flashcards
-    recently_studied_attempts = FlashcardAttempt.query.filter_by(user_id=current_user.id).order_by(FlashcardAttempt.timestamp.desc()).limit(10).all()
-    recent_flashcards = list(dict.fromkeys([attempt.flashcard for attempt in recently_studied_attempts]))[:5]
-    return render_template('profile.html', total_flashcards=total_flashcards, topic_performance=topic_performance, recent_flashcards=recent_flashcards)
+    # Get recently studied decks (folders)
+    recently_studied_attempts = db.session.query(FlashcardAttempt).join(Flashcard).filter(
+        Flashcard.user_id == current_user.id,
+        Flashcard.folder_id.isnot(None)
+    ).order_by(FlashcardAttempt.timestamp.desc()).limit(20).all()
+    
+    recent_folders = []
+    seen_folder_ids = set()
+    for attempt in recently_studied_attempts:
+        if attempt.flashcard.folder and attempt.flashcard.folder.id not in seen_folder_ids:
+            recent_folders.append(attempt.flashcard.folder)
+            seen_folder_ids.add(attempt.flashcard.folder.id)
+
+    return render_template('profile.html', total_flashcards=total_flashcards, topic_performance=topic_performance, recent_folders=recent_folders[:5], topics_data=topics_dict, total_questions_answered=total_questions_answered)
 
 @app.route('/chatbot')
 @login_required
