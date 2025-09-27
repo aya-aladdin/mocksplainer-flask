@@ -33,12 +33,22 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(250), nullable=False) # Increased size for hashed passwords
     flashcards = db.relationship('Flashcard', backref='owner', lazy=True)
 
+class Folder(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey('folder.id'), nullable=True)
+    
+    parent = db.relationship('Folder', remote_side=[id], backref='subfolders')
+    flashcards = db.relationship('Flashcard', backref='folder', lazy='dynamic')
+
 class Flashcard(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     topic = db.Column(db.String(100), nullable=False)
     question = db.Column(db.Text, nullable=False)
     answer = db.Column(db.Text, nullable=False)
+    folder_id = db.Column(db.Integer, db.ForeignKey('folder.id'), nullable=True)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -56,6 +66,7 @@ def save_flashcards():
     try:
         data = request.get_json()
         flashcards_data = data.get('flashcards', [])
+        folder_id = data.get('folder_id', None) # Get the target folder_id
 
         if not flashcards_data:
             return jsonify({'message': 'No flashcards provided to save.'}), 200
@@ -67,7 +78,8 @@ def save_flashcards():
                 user_id=current_user.id,
                 topic=fc.get('topic', 'Unassigned'),
                 question=fc.get('question'),
-                answer=fc.get('answer')
+                answer=fc.get('answer'),
+                folder_id=folder_id # Assign the flashcard to the folder
             )
             new_flashcards.append(new_flashcard)
 
@@ -79,6 +91,79 @@ def save_flashcards():
         db.session.rollback()
         print(f"Error saving flashcards: {e}")
         return jsonify({'error': 'Failed to save flashcards due to a server error.'}), 500
+
+@app.route('/generate_flashcards_ai', methods=['POST'])
+@login_required
+def generate_flashcards_ai():
+    """
+    Uses an AI to generate flashcards from a given topic/text and saves them.
+    """
+    data = request.json
+    text = data.get('text', '').strip()
+    topic = data.get('topic', 'Generated').strip()
+
+    if not text:
+        return jsonify({'error': 'Please provide a topic or text to generate flashcards from.'}), 400
+
+    try:
+        # A very specific prompt to get structured JSON from the AI
+        system_prompt = (
+            "You are an expert flashcard creation assistant. Based on the user's text, generate 5-7 concise, high-quality flashcards. "
+            "Each flashcard must have a 'question' and an 'answer' field. "
+            "Respond ONLY with a valid JSON array of objects. Do not include any other text, explanation, or markdown. "
+            "Example: [{\"question\": \"What is the powerhouse of the cell?\", \"answer\": \"The mitochondria.\"}]"
+        )
+        
+        api_messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": text}
+        ]
+
+        req = urllib.request.Request(
+            HACKCLUB_API_URL,
+            data=json.dumps({"model": "gpt-4o-mini", "messages": api_messages, "max_tokens": 1000}).encode('utf-8'),
+            headers={'Content-Type': 'application/json'}
+        )
+
+        with urllib.request.urlopen(req) as response:
+            if response.status == 200:
+                response_text = response.read().decode('utf-8')
+                ai_response_data = json.loads(response_text)
+                content = ai_response_data['choices'][0]['message']['content']
+                
+                # Clean the response to ensure it's valid JSON
+                json_start = content.find('[')
+                json_end = content.rfind(']') + 1
+                flashcards_json_str = content[json_start:json_end]
+                
+                flashcards_data = json.loads(flashcards_json_str)
+                return jsonify({'flashcards': flashcards_data})
+            else:
+                return jsonify({'error': 'Failed to get a response from the AI.'}), 500
+    except Exception as e:
+        print(f"AI Flashcard Generation Error: {e}")
+        return jsonify({'error': 'An error occurred while generating flashcards.'}), 500
+
+@app.route('/create_folder', methods=['POST'])
+@login_required
+def create_folder():
+    """Creates a new folder for the current user."""
+    data = request.json
+    name = data.get('name', '').strip()
+    parent_id = data.get('parent_id')
+
+    if not name:
+        return jsonify({'error': 'Folder name cannot be empty.'}), 400
+
+    try:
+        new_folder = Folder(name=name, user_id=current_user.id, parent_id=parent_id)
+        db.session.add(new_folder)
+        db.session.commit()
+        return jsonify({'id': new_folder.id, 'name': new_folder.name, 'parent_id': new_folder.parent_id})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Folder Creation Error: {e}")
+        return jsonify({'error': 'Failed to create folder.'}), 500
 
 # --- Hack Club AI Chat Endpoint ---
 
@@ -204,13 +289,13 @@ def profile():
     
     # Calculate stats
     total_flashcards = len(user_flashcards)
-    topics = {}
+    topics_dict = {}
     for fc in user_flashcards:
-        topics[fc.topic] = topics.get(fc.topic, 0) + 1
+        topics_dict[fc.topic] = topics_dict.get(fc.topic, 0) + 1
     
     # Get the 5 most recent flashcards
     recent_flashcards = Flashcard.query.filter_by(user_id=current_user.id).order_by(Flashcard.id.desc()).limit(5).all()
-    return render_template('profile.html', total_flashcards=total_flashcards, topics=topics, recent_flashcards=recent_flashcards)
+    return render_template('profile.html', total_flashcards=total_flashcards, topics_data=topics_dict, recent_flashcards=recent_flashcards)
 
 @app.route('/chatbot')
 @login_required
@@ -220,8 +305,22 @@ def chatbot():
 @app.route('/flashcards')
 @login_required
 def flashcards():
-    user_flashcards = Flashcard.query.filter_by(user_id=current_user.id).order_by(Flashcard.topic).all()
-    return render_template('flashcards.html', flashcards=user_flashcards)
+    # Fetch top-level folders and flashcards (not in any folder)
+    top_level_folders = Folder.query.filter_by(user_id=current_user.id, parent_id=None).all()
+    top_level_flashcards = Flashcard.query.filter_by(user_id=current_user.id, folder_id=None).all()
+
+    def build_folder_tree(folder):
+        """Recursively build a dictionary representing the folder and its contents."""
+        return {
+            'id': folder.id,
+            'name': folder.name,
+            'subfolders': [build_folder_tree(sub) for sub in folder.subfolders],
+            'flashcards': [{'id': fc.id, 'question': fc.question, 'answer': fc.answer, 'topic': fc.topic} for fc in folder.flashcards]
+        }
+
+    folder_structure = [build_folder_tree(f) for f in top_level_folders]
+    
+    return render_template('flashcards.html', folder_structure=folder_structure, root_flashcards=top_level_flashcards)
 
 
 if __name__ == '__main__':

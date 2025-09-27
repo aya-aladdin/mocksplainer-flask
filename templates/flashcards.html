@@ -3,28 +3,238 @@
 {% block title %}Flashcards System{% endblock %}
 
 {% block content %}
-    <div class="card">
-        <div class="pad">
-            <h1 class="section-title">Flashcards System</h1>
-            
-            {% if flashcards %}
-                <div class="flashcards-container">
-                    {% for flashcard in flashcards %}
-                        <div class="flashcard" onclick="this.classList.toggle('flipped')">
-                            <div class="flashcard-inner">
-                                <div class="flashcard-front">
-                                    <p>{{ flashcard.question }}</p>
-                                </div>
-                                <div class="flashcard-back">
-                                    <p>{{ flashcard.answer }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
+<div class="flashcards-layout">
+    <!-- Sidebar for Folders -->
+    <aside class="flashcards-sidebar">
+        <div class="sidebar-header">
+            <h3>My Collection</h3>
+            <button class="btn btn-ghost btn-sm" id="new-folder-btn">+ New Folder</button>
+        </div>
+        <div id="folder-tree">
+            <!-- Folder structure will be rendered here by JavaScript -->
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flashcards-main">
+        <div class="flashcards-main-header">
+            <h1 id="current-folder-name">All Flashcards</h1>
+            <div class="actions">
+                <button class="btn btn-secondary" id="new-flashcard-btn">Create Flashcard</button>
+                <button class="btn btn-primary" id="learn-mode-btn">Learn</button>
+            </div>
+        </div>
+
+        <!-- Breadcrumbs -->
+        <nav id="breadcrumbs" aria-label="breadcrumb"></nav>
+
+        <!-- Items (Folders and Flashcards) -->
+        <div id="items-container" class="items-grid">
+            <!-- Items will be rendered here by JavaScript -->
+        </div>
+    </main>
+</div>
+
+<!-- Learn Mode Modal -->
+<div id="learn-mode-modal" class="modal-overlay" style="display: none;">
+    <div class="learn-modal-content">
+        <button class="modal-close-btn" id="close-learn-modal">&times;</button>
+        <div class="learn-flashcard">
+            <div class="learn-flashcard-inner">
+                <div class="learn-flashcard-front">
+                    <p id="learn-question"></p>
                 </div>
-            {% else %}
-                <p>You don't have any flashcards yet. Generate some from the chatbot!</p>
-            {% endif %}
+                <div class="learn-flashcard-back">
+                    <p id="learn-answer"></p>
+                </div>
+            </div>
+        </div>
+        <div class="learn-controls">
+            <button id="prev-flashcard-btn" class="btn btn-secondary">Previous</button>
+            <div id="learn-progress">1 / 10</div>
+            <button id="next-flashcard-btn" class="btn btn-primary">Next</button>
         </div>
     </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- STATE ---
+    const fullData = {
+        folders: {{ folder_structure | tojson | safe }},
+        root_flashcards: {{ root_flashcards | tojson | safe }}
+    };
+    let currentFolderId = null;
+    let breadcrumbs = [];
+
+    // --- DOM ELEMENTS ---
+    const folderTreeEl = document.getElementById('folder-tree');
+    const itemsContainerEl = document.getElementById('items-container');
+    const currentFolderNameEl = document.getElementById('current-folder-name');
+    const breadcrumbsEl = document.getElementById('breadcrumbs');
+    const newFolderBtn = document.getElementById('new-folder-btn');
+
+    // --- RENDER FUNCTIONS ---
+
+    function renderFolderTree(folders, parentElement, level = 0) {
+        const ul = document.createElement('ul');
+        ul.style.paddingLeft = level > 0 ? '20px' : '0';
+        ul.style.listStyle = 'none';
+
+        folders.forEach(folder => {
+            const li = document.createElement('li');
+            li.innerHTML = `<a href="#" data-folder-id="${folder.id}">📁 ${folder.name}</a>`;
+            li.querySelector('a').addEventListener('click', (e) => {
+                e.preventDefault();
+                navigateToFolder(folder.id);
+            });
+            
+            if (folder.subfolders && folder.subfolders.length > 0) {
+                renderFolderTree(folder.subfolders, li, level + 1);
+            }
+            ul.appendChild(li);
+        });
+        parentElement.appendChild(ul);
+    }
+
+    function renderItems(items) {
+        itemsContainerEl.innerHTML = ''; // Clear current items
+        
+        // Render subfolders
+        (items.folders || []).forEach(folder => {
+            const folderEl = document.createElement('div');
+            folderEl.className = 'folder-item';
+            folderEl.innerHTML = `<span>${folder.name}</span>`;
+            folderEl.addEventListener('click', () => navigateToFolder(folder.id));
+            itemsContainerEl.appendChild(folderEl);
+        });
+
+        // Render flashcards
+        (items.flashcards || []).forEach(flashcard => {
+            const flashcardEl = document.createElement('div');
+            flashcardEl.className = 'flashcard-item';
+            flashcardEl.innerHTML = `
+                <div class="flashcard-item-question">${flashcard.question}</div>
+                <div class="flashcard-item-topic">${flashcard.topic}</div>
+            `;
+            // Could add a click handler to open a detail view
+            itemsContainerEl.appendChild(flashcardEl);
+        });
+    }
+
+    function renderBreadcrumbs() {
+        breadcrumbsEl.innerHTML = '';
+        const homeLink = document.createElement('a');
+        homeLink.href = '#';
+        homeLink.innerText = 'All Flashcards';
+        homeLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateToFolder(null);
+        });
+        breadcrumbsEl.appendChild(homeLink);
+
+        breadcrumbs.forEach((crumb, index) => {
+            breadcrumbsEl.innerHTML += ' / ';
+            const crumbLink = document.createElement('a');
+            crumbLink.href = '#';
+            crumbLink.innerText = crumb.name;
+            if (index < breadcrumbs.length - 1) {
+                crumbLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navigateToFolder(crumb.id);
+                });
+            }
+            breadcrumbsEl.appendChild(crumbLink);
+        });
+    }
+
+    // --- DATA & NAVIGATION LOGIC ---
+
+    function findFolder(folderId, folders = fullData.folders) {
+        for (const folder of folders) {
+            if (folder.id === folderId) return folder;
+            const found = findFolder(folderId, folder.subfolders);
+            if (found) return found;
+        }
+        return null;
+    }
+
+    function buildBreadcrumbs(folderId, folders = fullData.folders, path = []) {
+        for (const folder of folders) {
+            const currentPath = [...path, { id: folder.id, name: folder.name }];
+            if (folder.id === folderId) {
+                return currentPath;
+            }
+            const foundPath = buildBreadcrumbs(folderId, folder.subfolders, currentPath);
+            if (foundPath) return foundPath;
+        }
+        return null;
+    }
+
+    function navigateToFolder(folderId) {
+        currentFolderId = folderId;
+        if (folderId === null) {
+            // Root view
+            currentFolderNameEl.innerText = 'All Flashcards';
+            breadcrumbs = [];
+            renderItems({ folders: fullData.folders, flashcards: fullData.root_flashcards });
+        } else {
+            const folder = findFolder(folderId);
+            if (folder) {
+                currentFolderNameEl.innerText = folder.name;
+                breadcrumbs = buildBreadcrumbs(folderId);
+                renderItems({ folders: folder.subfolders, flashcards: folder.flashcards });
+            }
+        }
+        renderBreadcrumbs();
+    }
+
+    // --- EVENT HANDLERS ---
+
+    newFolderBtn.addEventListener('click', async () => {
+        const name = prompt('Enter new folder name:');
+        if (name && name.trim()) {
+            try {
+                const response = await fetch('{{ url_for("create_folder") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name.trim(), parent_id: currentFolderId })
+                });
+                if (!response.ok) throw new Error('Failed to create folder.');
+                
+                const newFolder = await response.json();
+                
+                // Add to local data structure and re-render
+                const newFolderData = { ...newFolder, subfolders: [], flashcards: [] };
+                if (currentFolderId === null) {
+                    fullData.folders.push(newFolderData);
+                } else {
+                    const parent = findFolder(currentFolderId);
+                    parent.subfolders.push(newFolderData);
+                }
+                
+                // Re-render everything
+                folderTreeEl.innerHTML = '';
+                renderFolderTree(fullData.folders, folderTreeEl);
+                navigateToFolder(currentFolderId);
+
+            } catch (error) {
+                console.error(error);
+                alert('Error creating folder.');
+            }
+        }
+    });
+
+    // --- INITIALIZATION ---
+    function initialize() {
+        folderTreeEl.innerHTML = '';
+        renderFolderTree(fullData.folders, folderTreeEl);
+        navigateToFolder(null); // Start at the root
+    }
+
+    initialize();
+});
+</script>
 {% endblock %}

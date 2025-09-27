@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Profile{% endblock %}
-{% block content %}
+{% block content %} 
 <div class="container profile-dashboard">
     <div class="dashboard-header">
         <h1>Welcome, {{ current_user.username }}!</h1>
@@ -18,7 +18,7 @@
         </div>
         <div class="card">
             <div class="pad">
-                <div class="stat-value">{{ topics|length }}</div>
+                <div class="stat-value">{{ topics_data|length }}</div>
                 <div class="stat-label">Topics Studied</div>
             </div>
         </div>
@@ -36,7 +36,7 @@
         <div class="card">
             <div class="pad">
                 <h3 class="card-section-title">Topic Distribution</h3>
-                {% if topics %}
+                {% if topics_data %}
                 <div class="chart-container">
                     <canvas id="topicsPieChart"></canvas>
                 </div>
@@ -71,7 +71,7 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const topicsData = {{ topics | tojson }};
+        const topicsData = {{ topics_data | tojson | safe }};
         const labels = Object.keys(topicsData);
         const data = Object.values(topicsData);
 
