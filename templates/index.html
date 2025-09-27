@@ -22,25 +22,23 @@
         </button>
     </div>
 
-    <div class="banner">
-        <p>Teacher Back-to-School Gift: Free Test Builder for September only! <a href="/register">Unlock now</a></p>
-    </div>
-
-    <div class="container center-hero">
-        <div>
-            <h1 class="headline">Exam-specific revision,<br>made by trusted examiners</h1>
-            <p class="muted">Real expertise. Real results. On average, our resources help students go up 2 grades.</p>
-            <div class="actions" id="get-started">
-                <div class="email-signup-group">
-                    <input type="email" class="form-control" placeholder="Enter your email">
-                    <a href="/register" class="btn btn-primary">Get Started</a>
+    <div class="scroll-wrapper">
+        <div class="sticky-hero">
+            <div class="container center-hero">
+                <div id="hero-content">
+                    <h1 class="headline">Exam-specific revision,<br>made by trusted examiners</h1>
+                    <p class="muted">Real expertise. Real results. On average, our resources help students go up 2 grades.</p>
+                    <div class="actions" id="get-started">
+                        <div class="email-signup-group">
+                            <input type="email" class="form-control" placeholder="Enter your email">
+                            <a href="/register" class="btn btn-primary">Get Started</a>
+                        </div>
+                        <a href="{{ url_for('chatbot') }}" class="btn btn-ghost">Try our AI</a>
+                    </div>
                 </div>
-                <a href="{{ url_for('chatbot') }}" class="btn btn-ghost">Try our AI</a>
             </div>
         </div>
-    </div>
-
-    <div class="section-bg-darker">
+        <div class="scroll-content section-bg-darker">
         <div class="container feature-showcase-container">
             <nav class="feature-showcase-nav">
                 <button class="feature-tab active" data-feature="flashcards">AI Flashcards</button>
@@ -71,7 +69,7 @@
                 <li>AQA</li>
             </ul>
         </div>
-        <div class="container why-it-works">
+        <div class="container why-it-works" style="padding-top: 4rem;">
             <h2 class="section-title">Why it works</h2>
             <div class="grid">
                 <div class="card">
@@ -97,14 +95,43 @@
                 </div>
             </div>
         </div>
+        </div>
     </div>
 
-    <div class="container what-are-you-studying">
-        <h2 class="section-title">What are you studying?</h2>
-        <div class="actions">
-            <a href="{{ url_for('register') }}" class="btn btn-secondary">IGCSE</a>
-            <a href="{{ url_for('register') }}" class="btn btn-secondary">A-Level</a>
-            <a href="{{ url_for('register') }}" class="btn btn-secondary">IB</a>
+    <div class="full-width-section">
+        <div class="container study-showcase-container">
+            <h2 class="section-title">What are you studying?</h2>
+            <div class="study-showcase">
+                <div class="study-accordion">
+                    <div class="accordion-item active">
+                        <button class="accordion-header" data-image="/static/img/v1.png">
+                            <h3>IGCSE</h3>
+                        </button>
+                        <div class="accordion-content">
+                            <p>Comprehensive resources tailored specifically for the IGCSE curriculum, ensuring you cover every topic in depth.</p>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <button class="accordion-header" data-image="/static/img/v2dark.png">
+                            <h3>A-Level</h3>
+                        </button>
+                        <div class="accordion-content">
+                            <p>Master advanced concepts with our expert-written guides and exam-style questions for your A-Level subjects.</p>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <button class="accordion-header" data-image="/static/img/v3.png">
+                            <h3>IB (International Baccalaureate)</h3>
+                        </button>
+                        <div class="accordion-content">
+                            <p>Navigate the IB Diploma Programme with confidence using our specialized notes, flashcards, and mock tests.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="study-image-pane">
+                    <img src="/static/img/v1.png" alt="Curriculum feature image">
+                </div>
+            </div>
         </div>
     </div>
 
@@ -285,6 +312,49 @@
                     });
                 });
             }
+        });
+
+        // Hero scroll animation
+        window.addEventListener('scroll', () => {
+            const heroContent = document.getElementById('hero-content');
+            const scrollY = window.scrollY;
+            const heroHeight = document.querySelector('.sticky-hero').offsetHeight;
+            
+            if (heroContent && scrollY < heroHeight) {
+                const scrollFraction = scrollY / (heroHeight / 2); // Control speed of animation
+                const scale = Math.max(0.8, 1 - scrollFraction * 0.2);
+                const opacity = Math.max(0, 1 - scrollFraction * 1.5);
+
+                heroContent.style.transform = `scale(${scale})`;
+                heroContent.style.opacity = opacity;
+            } else if (heroContent) {
+                heroContent.style.opacity = 0;
+            }
+        });
+
+        // Study showcase accordion
+        const accordionItems = document.querySelectorAll('.accordion-item');
+        const showcaseImage = document.querySelector('.study-image-pane img');
+
+        accordionItems.forEach(item => {
+            const header = item.querySelector('.accordion-header');
+            header.addEventListener('click', () => {
+                // Don't do anything if it's already active
+                if (item.classList.contains('active')) {
+                    return;
+                }
+
+                // Deactivate all other items
+                accordionItems.forEach(otherItem => {
+                    otherItem.classList.remove('active');
+                });
+
+                // Activate the clicked item
+                item.classList.add('active');
+
+                // Change the image
+                showcaseImage.src = header.dataset.image;
+            });
         });
     </script>
 </body>

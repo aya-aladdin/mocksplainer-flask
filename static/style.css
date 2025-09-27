@@ -41,7 +41,7 @@ min-height: 100vh;
 .scroll-animate {
     opacity: 0;
     transform: translateY(30px);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    transition: opacity 1s ease-out, transform 1s ease-out;
 }
 .scroll-animate.visible {
     opacity: 1;
@@ -66,7 +66,7 @@ z-index: 50;
 display: flex;
 align-items: center;
 justify-content: space-between;
-padding: 10px 20px;
+padding: 6px 20px;
 background: rgba(255, 255, 255, .7);
 backdrop-filter: saturate(1.2) blur(10px);
 border-bottom: 1px solid #dee2e6;
@@ -197,14 +197,6 @@ max-width: 760px;
 margin: 8px 2px 16px 2px;
 font-size: 22px;
 font-weight: 700;
-}
-
-.center-hero {
-min-height: 50vh;
-display: grid;
-place-items: center;
-text-align: center;
-padding: 60px 16px;
 }
 
 .profile-hero {
@@ -359,6 +351,11 @@ margin-top: 1rem;
     border-radius: 8px; /* Slightly rounded corners for the button */
 }
 
+.feature-showcase-nav {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 0 4rem;
+}
+
 
 .feature-showcase-nav {
     display: flex;
@@ -366,8 +363,6 @@ margin-top: 1rem;
     justify-content: center;
     background-color: rgba(233, 236, 239, 0.7);
     border-radius: 999px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    padding: 0 4rem;
 }
 
 .feature-tab {
@@ -380,7 +375,7 @@ margin-top: 1rem;
     font-size: 0.95rem;
     color: var(--muted);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.6s ease;
     position: relative;
     z-index: 1; /* Ensure text is above the indicator */
 }
@@ -394,7 +389,7 @@ margin-top: 1rem;
     backdrop-filter: blur(10px); /* stronger blur makes translucency visible */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); /* softer shadow */
     border-radius: 999px;
-    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
     border: 1px solid rgba(255, 255, 255, 0.15); /* subtle border */
     z-index: 0; /* Place indicator behind the text */
 }
@@ -413,8 +408,8 @@ margin-top: 1rem;
     position: absolute;
     width: calc(100% - 2rem);
     opacity: 0;
-    transform: translateX(30px);
-    transition: opacity 0.4s ease, transform 0.4s ease;
+    transform: translateX(40px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
     pointer-events: none;
 }
 
@@ -425,7 +420,7 @@ margin-top: 1rem;
 }
 
 .feature-panel.exiting {
-    transform: translateX(-30px);
+    transform: translateX(-40px);
 }
 
 .feature-showcase-container {
@@ -433,11 +428,37 @@ margin-top: 1rem;
     padding-bottom: 3rem; /* Add space below it */
 }
 
-.section-bg-darker {
+.scroll-wrapper {
+    position: relative;
+}
+
+.sticky-hero {
+    height: 60vh;
+    position: sticky;
+    top: 0;
+    display: grid;
+    place-items: center;
+    text-align: center;
+}
+
+#hero-content {
+    transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+    will-change: transform, opacity;
+}
+
+.scroll-content {
+    position: relative;
+    z-index: 10;
     background-color: #f3f4f6;
+}
+
+.section-bg-darker {
+    /* background-color: #f3f4f6; */
     padding: 3rem 0;
     margin-top: 4rem;
 }
+
+
 
 .scroller {
     max-width: 100%;
@@ -452,7 +473,7 @@ margin-top: 1rem;
     flex-wrap: nowrap;
     gap: 1rem;
     width: max-content;
-    animation: scroll 40s linear infinite;
+    animation: scroll 60s linear infinite;
 }
 
 @keyframes scroll {
@@ -578,7 +599,7 @@ margin-top: 1rem;
     background-position: center;
     filter: blur(20px) saturate(150%) brightness(1.1);
     opacity: 0;
-    transition: opacity 0.4s ease-in-out;
+    transition: opacity 0.6s ease-in-out;
     transform: scale(1.1);
 }
 
@@ -602,7 +623,7 @@ margin-top: 1rem;
     position: relative;
     height: 100%;
     color: var(--ink);
-    transition: color 0.4s ease-in-out;
+    transition: color 0.6s ease-in-out;
 }
 
 .feature-box h3 {
@@ -618,7 +639,7 @@ margin-top: 1rem;
     bottom: 0;
     width: calc(100% - 4rem); /* Match padding */
     color: inherit; /* Inherit color from parent for smooth transition */
-    transition: transform 0.4s ease-in-out, color 0.4s ease-in-out;
+    transition: transform 0.6s ease-in-out, color 0.6s ease-in-out;
 }
 
 .feature-link {
@@ -626,7 +647,7 @@ margin-top: 1rem;
     position: absolute;
     bottom: 0;
     opacity: 0;
-    transition: opacity 0.4s ease-in-out;
+    transition: opacity 0.6s ease-in-out;
     font-weight: 600;
     color: #60a5fa; /* Lighter blue */
 }
@@ -642,6 +663,89 @@ margin-top: 1rem;
 .feature-box:hover .feature-link {
     opacity: 1;
 }
+
+.full-width-section {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background-color: var(--panel);
+}
+
+.study-showcase-container {
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+}
+
+.study-showcase {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    align-items: stretch;
+    margin-top: 2rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+}
+
+.accordion-item {
+    border-bottom: 1px solid var(--border);
+}
+
+.accordion-header {
+    padding: 1.5rem;
+}
+
+.accordion-header {
+    width: 100%;
+    text-align: left;
+    padding: 1.5rem 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.accordion-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--muted);
+    transition: color 0.4s ease;
+}
+
+.accordion-item.active .accordion-header h3 {
+    color: var(--ink);
+    font-weight: 600;
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    padding: 0 1.5rem;
+    transition: max-height 0.5s ease-in-out, padding-bottom 0.5s ease-in-out;
+}
+
+.accordion-content p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.accordion-item.active .accordion-content {
+    max-height: 100px; /* Adjust as needed */
+    padding-bottom: 1.5rem;
+}
+
+.study-image-pane {
+    /* Styles moved to parent .study-showcase */
+}
+
+.study-image-pane img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.5s ease-in-out;
+}
+
 
 .chat-layout-container {
     display: flex;
@@ -1372,7 +1476,7 @@ margin-top: 1rem;
     }
 
     .topbar {
-        padding: 12px 16px;
+        padding: 8px 16px;
     }
 
     .nav {
@@ -1458,6 +1562,11 @@ margin-top: 1rem;
 
     .flashcards-main-header .actions .btn {
         flex-grow: 1;
+    }
+
+    .study-showcase {
+        grid-template-columns: 1fr;
+        gap: 2rem;
     }
 
 }
