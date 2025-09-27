@@ -610,8 +610,10 @@ def flashcards():
         }
 
     folder_structure = [build_folder_tree(f) for f in top_level_folders]
+    root_flashcards_data = [{'id': fc.id, 'question': fc.question, 'answer': fc.answer, 'topic': fc.topic} for fc in top_level_flashcards]
+
     
-    return render_template('flashcards.html', folder_structure=folder_structure, root_flashcards=top_level_flashcards)
+    return render_template('flashcards.html', folder_structure=folder_structure, root_flashcards=root_flashcards_data)
 
 
 if __name__ == '__main__':
