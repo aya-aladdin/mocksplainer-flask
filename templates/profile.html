@@ -1,22 +1,104 @@
 {% extends "base.html" %}
 
 {% block title %}Profile{% endblock %}
-
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card mt-5 text-center">
-                <div class="card-header">
-                    <h2>Welcome, {{ current_user.username }}!</h2>
+<div class="container profile-dashboard">
+    <div class="dashboard-header">
+        <h1>Welcome, {{ current_user.username }}!</h1>
+        <p class="muted">Here's a summary of your learning progress. Keep it up!</p>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid stat-cards">
+        <div class="card">
+            <div class="pad">
+                <div class="stat-value">{{ total_flashcards }}</div>
+                <div class="stat-label">Flashcards Created</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="pad">
+                <div class="stat-value">{{ topics|length }}</div>
+                <div class="stat-label">Topics Studied</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="pad">
+                <div class="stat-value">0</div>
+                <div class="stat-label">Questions Answered</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Content -->
+    <div class="grid dashboard-main-grid">
+        <!-- Topic Distribution Chart -->
+        <div class="card">
+            <div class="pad">
+                <h3 class="card-section-title">Topic Distribution</h3>
+                {% if topics %}
+                <div class="chart-container">
+                    <canvas id="topicsPieChart"></canvas>
                 </div>
-                <div class="card-body">
-                    <p class="card-text">Ready to start learning? Dive into our AI-powered tools.</p>
-                    <a href="{{ url_for('chatbot') }}" class="btn btn-primary">Go to AI Chatbot</a>
-                    <a href="{{ url_for('flashcards') }}" class="btn btn-secondary">View My Flashcards</a>
-                </div>
+                {% else %}
+                <p class="muted">No flashcards created yet. Start a chat with the AI Tutor to generate some!</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card">
+            <div class="pad">
+                <h3 class="card-section-title">Recent Flashcards</h3>
+                {% if recent_flashcards %}
+                <ul class="activity-list">
+                    {% for fc in recent_flashcards %}
+                    <li>
+                        <strong>{{ fc.topic }}:</strong> {{ fc.question | truncate(50) }}
+                    </li>
+                    {% endfor %}
+                </ul>
+                <a href="{{ url_for('flashcards') }}" class="btn-link">View all flashcards &rarr;</a>
+                {% else %}
+                <p class="muted">Your recently created flashcards will appear here.</p>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const topicsData = {{ topics | tojson }};
+        const labels = Object.keys(topicsData);
+        const data = Object.values(topicsData);
+
+        if (labels.length > 0) {
+            const ctx = document.getElementById('topicsPieChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Flashcards per Topic',
+                        data: data,
+                        backgroundColor: ['#3b82f6', '#ef4444', '#22c55e', '#f97316', '#8b5cf6', '#fde047'],
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

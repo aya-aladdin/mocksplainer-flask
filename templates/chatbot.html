@@ -3,34 +3,82 @@
 {% block title %}Chatbot Tutor{% endblock %}
 
 {% block content %}
-    <div class="card">
-        <div class="pad">
-            <h1 class="section-title">Chatbot Tutor</h1>
-            <div id="chat-container">
-                <div id="chat-messages"></div>
-                <form id="chat-form">
-                    <input type="text" id="chat-input" placeholder="Ask a question...">
-                    <button type="submit">Send</button>
-                </form>
-            </div>
+<div class="chat-layout-container">
+    <!-- Sidebar for Chat History -->
+    <aside class="chat-sidebar">
+        <div class="sidebar-header">
+            <a href="{{ url_for('chatbot') }}" class="btn new-chat-btn">
+                <span>+</span> New Chat
+            </a>
         </div>
-    </div>
+        <nav class="chat-history">
+            <ul>
+                {% for conv in conversations %}
+                <li class="{{ 'active' if conv.id == active_conversation_id else '' }}">
+                    <a href="{{ url_for('chatbot', conversation_id=conv.id) }}">{{ conv.title }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="chat-main">
+        <div id="chat-container">
+            <div id="chat-messages">
+                {% for message in active_conversation_messages %}
+                    <div class="message {{ 'user-message' if message.sender == 'user' else 'bot-message' }}">
+                        {{ message.content | safe }}
+                    </div>
+                {% endfor %}
+            </div>
+            <form id="chat-form">
+                <input type="text" id="chat-input" placeholder="Ask a question..." autocomplete="off">
+                <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+        </div>
+    </main>
+</div>
 
     <script>
         const chatForm = document.getElementById('chat-form');
         const chatInput = document.getElementById('chat-input');
         const chatMessages = document.getElementById('chat-messages');
+        let currentConversationId = {{ active_conversation_id | tojson }};
 
         function appendMessage(sender, text) {
             const messageElement = document.createElement('div');
             messageElement.classList.add('message');
-            // A simple markdown-to-html for links
-            text = text.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
-            messageElement.innerHTML = sender === 'user' ? text : text; // Can use a library like 'marked' for full markdown
+            
+            if (sender === 'bot') {
+                messageElement.innerHTML = marked.parse(text); // Use marked.js to parse markdown
+            } else {
+                messageElement.textContent = text; // For user messages, just display plain text
+            }
             messageElement.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
             chatMessages.appendChild(messageElement);
+
+            // After appending, tell KaTeX to render math in the new message
+            if (sender === 'bot') {
+                renderMathInElement(messageElement, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ]
+                });
+            }
+
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
+
+        // On page load, render markdown and math for existing messages
+        document.querySelectorAll('.bot-message').forEach(messageElement => {
+            messageElement.innerHTML = marked.parse(messageElement.innerHTML);
+            renderMathInElement(messageElement, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}, {left: '\\(', right: '\\)', display: false}, {left: '\\[', right: '\\]', display: true}] });
+        });
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom on load
 
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -47,7 +95,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ message })
+                    body: JSON.stringify({ message: message, conversation_id: currentConversationId })
                 });
 
                 if (!response.ok) {
@@ -55,7 +103,12 @@
                 }
 
                 const data = await response.json();
-                appendMessage('bot', data.reply);
+
+                // If this was a new chat, redirect to the new conversation URL to preserve history
+                if (!currentConversationId && data.conversation_id) {
+                    window.location.href = `/chatbot/${data.conversation_id}`;
+                }
+                appendMessage('bot', data.reply); // The new message is already on the page if we redirected, but this is fine for now.
 
             } catch (error) {
                 console.error('Error:', error);

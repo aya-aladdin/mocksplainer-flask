@@ -15,7 +15,7 @@ IGCSE_INFO_TEXT = "The user is studying IGCSE level content in Math, Physics, Bi
 
 app = Flask(__name__)
 # IMPORTANT: Use a secure, complex key in a real application.
-app.config['SECRET_KEY'] = 'super_secret_and_complex_key_for_igcse_app'
+app.config['SECRET_KEY'] = 'SNSnT_LoJM8ejQ1GFtSJCdcrQJCg1NInP5Klbp68Rqs'
 # Using sqlite for persistence
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///igcse_study.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -39,6 +39,20 @@ class Flashcard(db.Model):
     topic = db.Column(db.String(100), nullable=False)
     question = db.Column(db.Text, nullable=False)
     answer = db.Column(db.Text, nullable=False)
+
+class Conversation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.String(150), nullable=False, default="New Chat")
+    timestamp = db.Column(db.DateTime, server_default=db.func.now())
+    messages = db.relationship('ChatMessage', backref='conversation', lazy=True, cascade="all, delete-orphan")
+
+class ChatMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    conversation_id = db.Column(db.Integer, db.ForeignKey('conversation.id'), nullable=False)
+    sender = db.Column(db.String(50), nullable=False) # 'user' or 'bot'
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, server_default=db.func.now())
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -85,11 +99,29 @@ def save_flashcards():
 @app.route("/chat", methods=["POST"])
 @login_required # Protect the API endpoint
 def chat():
-    data = request.get_json()
+    data = request.json
     user_message = data.get("message", "").strip()
+    conversation_id = data.get("conversation_id")
 
     if not user_message:
         return jsonify({"reply": "⚠️ Please type a message."})
+
+    # If no conversation_id is provided, create a new conversation
+    if not conversation_id:
+        # Generate a title from the first message
+        title = (user_message[:40] + '...') if len(user_message) > 40 else user_message
+        new_conversation = Conversation(user_id=current_user.id, title=title)
+        db.session.add(new_conversation)
+        db.session.commit()
+        conversation_id = new_conversation.id
+    
+    # Save user message
+    user_chat_message = ChatMessage(conversation_id=conversation_id, sender='user', content=user_message)
+    db.session.add(user_chat_message)
+    db.session.commit()
+
+    # Get the conversation object
+    conversation = Conversation.query.get(conversation_id)
 
     try:
         # System Instruction for the IGCSE TutorBot
@@ -111,10 +143,10 @@ def chat():
                     },
                     {
                         "role": "user",
-                        "content": IGCSE_INFO_TEXT + "\n" + user_message + " (Do not include any reasoning or internal thought process in your final output.)"
+                        "content": IGCSE_INFO_TEXT + "\n" + user_message + " (Dont think.)"
                     }
                 ],
-                "max_tokens": 400
+                "max_tokens": 800
             }).encode('utf-8'),
             headers={'Content-Type': 'application/json'}
         )
@@ -122,9 +154,23 @@ def chat():
             if response.status == 200:
                 response_data = json.loads(response.read().decode('utf-8'))
                 # Extract the reply from the Hack Club API response structure
-                reply = response_data['choices'][0]['message']['content']
-                
-                return jsonify({"reply": reply})
+                content = response_data['choices'][0]['message']['content']
+
+                # Strip out the <think>...</think> block from the response
+                think_end_tag = '</think>'
+                think_end_index = content.find(think_end_tag)
+                if think_end_index != -1:
+                    # If the tag is found, take the content after it
+                    reply = content[think_end_index + len(think_end_tag):].strip()
+                else:
+                    reply = content.strip()
+
+                # Save bot message
+                bot_chat_message = ChatMessage(conversation_id=conversation_id, sender='bot', content=reply)
+                db.session.add(bot_chat_message)
+                db.session.commit()
+
+                return jsonify({"reply": reply, "conversation_id": conversation_id, "conversation_title": conversation.title})
             else:
                 # Read error response body if available
                 error_body = response.read().decode('utf-8', errors='ignore')
@@ -191,13 +237,34 @@ def index():
 @app.route('/profile')
 @login_required
 def profile():
-    return render_template('profile.html')
+    # Query user's flashcards to generate stats
+    user_flashcards = Flashcard.query.filter_by(user_id=current_user.id).all()
+    
+    # Calculate stats
+    total_flashcards = len(user_flashcards)
+    topics = {}
+    for fc in user_flashcards:
+        topics[fc.topic] = topics.get(fc.topic, 0) + 1
+    
+    # Get the 5 most recent flashcards
+    recent_flashcards = Flashcard.query.filter_by(user_id=current_user.id).order_by(Flashcard.id.desc()).limit(5).all()
+    return render_template('profile.html', total_flashcards=total_flashcards, topics=topics, recent_flashcards=recent_flashcards)
 
-@app.route('/chatbot')
+@app.route('/chatbot', defaults={'conversation_id': None})
+@app.route('/chatbot/<int:conversation_id>')
 @login_required
-def chatbot():
-    # Renders the chatbot interface, which will make POST requests to the new /chat endpoint
-    return render_template('chatbot.html')
+def chatbot(conversation_id):
+    # Fetch all conversations for the sidebar
+    conversations = Conversation.query.filter_by(user_id=current_user.id).order_by(Conversation.timestamp.desc()).all()
+    
+    # If a specific conversation is requested, fetch its messages
+    active_conversation_messages = []
+    if conversation_id:
+        active_conversation = Conversation.query.get(conversation_id)
+        if active_conversation and active_conversation.user_id == current_user.id:
+            active_conversation_messages = active_conversation.messages
+
+    return render_template('chatbot.html', conversations=conversations, active_conversation_messages=active_conversation_messages, active_conversation_id=conversation_id)
 
 @app.route('/flashcards')
 @login_required
