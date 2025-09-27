@@ -140,7 +140,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <a href="#" class="delete-btn">Delete</a>
                 </div>
             `;
-            folderEl.addEventListener('click', () => navigateToFolder(folder.id));
+            folderEl.addEventListener('click', (e) => {
+                // Only navigate if the click was not on the menu button or inside the dropdown
+                if (!e.target.closest('.item-menu-btn') && !e.target.closest('.item-menu-dropdown')) {
+                    navigateToFolder(folder.id);
+                }
+            });
             itemsContainerEl.appendChild(folderEl);
         });
 
