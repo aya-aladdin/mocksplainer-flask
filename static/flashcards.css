@@ -157,12 +157,20 @@
     text-overflow: ellipsis;
 }
 
-.flashcard-item .item-name {
+.flashcard-item .item-content {
+    flex-grow: 1;
+    perspective: 1000px;
+}
+
+.flashcard-item .flashcard-front,
+.flashcard-item .flashcard-back {
+    padding: 0;
+}
+
+.flashcard-item .flashcard-front .item-name {
     font-weight: 600;
     font-size: 1rem;
     color: var(--ink);
-    /* Multi-line ellipsis */
-    display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -172,11 +180,40 @@
 .flashcard-item-topic {
     font-size: 0.8rem;
     color: var(--muted);
-    align-self: flex-start;
-    padding: 4px 8px;
-    background: #f3f4f6;
-    border-radius: 4px;
     font-weight: 500;
+}
+
+.flashcard-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.flashcard-item .flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.flashcard-item.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+}
+
+.flashcard-item .flashcard-front, .flashcard-item .flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+}
+
+.flashcard-item .flashcard-back {
+    transform: rotateY(180deg);
+    font-size: 0.8rem;
 }
 
 /* --- Item Menu Styles --- */
@@ -286,6 +323,47 @@
 #move-folder-tree a.active {
     background-color: #eef2ff;
     font-weight: 600;
+}
+
+/* Creator Modal Styles */
+.creator-modal-content {
+    padding: 0;
+}
+
+.creator-tabs {
+    display: flex;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tab-link {
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-weight: 500;
+    color: var(--muted);
+    position: relative;
+    font-size: 0.9rem;
+}
+
+.tab-link.active {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.tab-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent);
+}
+
+.tab-content {
+    padding: 1.5rem;
+    display: none;
 }
 
 /* Emoji Picker Styles */

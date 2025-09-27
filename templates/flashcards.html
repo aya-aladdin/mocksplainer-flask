@@ -58,6 +58,30 @@
     </div>
 </div>
 
+<!-- Create Flashcard Modal -->
+<div id="create-flashcard-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content creator-modal-content">
+        <button class="modal-close-btn" id="close-create-modal">&times;</button>
+        <div class="creator-tabs">
+            <button class="tab-link active" data-tab="generate-ai">Generate with AI</button>
+            <button class="tab-link" data-tab="create-manual">Create Manually</button>
+        </div>
+
+        <!-- AI Generator Tab -->
+        <div id="generate-ai" class="tab-content" style="display: block;">
+            <form id="ai-generator-form">
+                <p class="muted" style="font-size: 0.9rem; margin-bottom: 1rem;">Enter a topic or paste your notes, and the AI will generate flashcards for you.</p>
+                <div class="form-group">
+                    <label for="ai-topic">Topic</label>
+                    <input type="text" id="ai-topic" class="form-control" placeholder="e.g., The Krebs Cycle" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Generate Flashcards</button>
+                <div id="ai-loading-spinner" style="display: none; margin-top: 1rem;">Generating...</div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Emoji Picker Modal -->
 <div id="emoji-picker-modal" class="modal-overlay" style="display: none;">
     <div class="modal-content emoji-picker-content">
@@ -104,6 +128,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const breadcrumbsEl = document.getElementById('breadcrumbs');
     const newFolderBtn = document.getElementById('new-folder-btn');
     const moveItemModal = document.getElementById('move-item-modal');
+    const newFlashcardBtn = document.getElementById('new-flashcard-btn');
+    const createFlashcardModal = document.getElementById('create-flashcard-modal');
     const moveFolderTreeEl = document.getElementById('move-folder-tree');
     const confirmMoveBtn = document.getElementById('confirm-move-btn');
     const cancelMoveBtn = document.getElementById('cancel-move-btn');
@@ -195,19 +221,20 @@ document.addEventListener('DOMContentLoaded', function() {
         // Render flashcards
         (items.flashcards || []).forEach(flashcard => {
             const flashcardEl = document.createElement('div');
-            flashcardEl.className = 'item-card flashcard-item';
+            flashcardEl.className = 'item-card flashcard-item'; // Keep this class for grid styling
             flashcardEl.dataset.itemId = flashcard.id;
             flashcardEl.dataset.itemType = 'flashcard';
             flashcardEl.innerHTML = `
-                <div class="item-content">
-                    <div class="item-name">${flashcard.question}</div>
-                    <div class="flashcard-item-topic">${flashcard.topic}</div>
+                <div class="item-content" onclick="this.parentElement.classList.toggle('flipped')">
+                    <div class="flashcard-front">
+                        <div class="item-name">${flashcard.question}</div>
+                    </div>
+                    <div class="flashcard-back">
+                        <p>${flashcard.answer}</p>
+                    </div>
                 </div>
-                <div class="item-menu-btn">...</div>
-                <div class="item-menu-dropdown">
-                    <a href="#" class="rename-btn">Rename</a>
-                    <a href="#" class="move-btn">Move</a>
-                    <a href="#" class="delete-btn">Delete</a>
+                <div class="flashcard-footer">
+                    <div class="flashcard-item-topic">${flashcard.topic}</div>
                 </div>
             `;
             // Could add a click handler to open a detail view
@@ -323,6 +350,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Error creating folder.');
             }
         }
+    });
+
+    newFlashcardBtn.addEventListener('click', () => {
+        createFlashcardModal.style.display = 'flex';
+    });
+
+    document.getElementById('close-create-modal').addEventListener('click', () => {
+        createFlashcardModal.style.display = 'none';
     });
 
     // Event delegation for item menus
@@ -465,6 +500,72 @@ document.addEventListener('DOMContentLoaded', function() {
             moveItemModal.style.display = 'none';
         }
     });
+
+    // --- Flashcard Creation Logic ---
+    const aiGeneratorForm = document.getElementById('ai-generator-form');
+    const aiLoadingSpinner = document.getElementById('ai-loading-spinner');
+
+    aiGeneratorForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        aiLoadingSpinner.style.display = 'block';
+
+        const topic = document.getElementById('ai-topic').value;
+        const text = topic; // Using topic as the generation text
+
+        try {
+            // 1. Generate flashcards from AI
+            const genResponse = await fetch('{{ url_for("generate_flashcards_ai") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: text, topic: topic })
+            });
+
+            if (!genResponse.ok) throw new Error('AI generation failed.');
+            
+            const data = await genResponse.json();
+            const generatedFlashcards = data.flashcards.map(fc => ({ ...fc, topic: topic }));
+
+            // 2. Save the generated flashcards to the DB
+            const saveResult = await saveFlashcards(generatedFlashcards, currentFolderId);
+            if (saveResult) {
+                // 3. Add them to the page and local state
+                generatedFlashcards.forEach(fc => {
+                    addFlashcardToDOM(fc);
+                    if (currentFolderId === null) {
+                        fullData.root_flashcards.push(fc);
+                    } else {
+                        findFolder(currentFolderId).flashcards.push(fc);
+                    }
+                });
+                aiGeneratorForm.reset();
+                createFlashcardModal.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('AI Generation Error:', error);
+            alert('Failed to generate flashcards with AI. Please try again.');
+        } finally {
+            aiLoadingSpinner.style.display = 'none';
+        }
+    });
+
+    async function saveFlashcards(flashcards, folderId) {
+        try {
+            const response = await fetch('{{ url_for("save_flashcards") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ flashcards: flashcards, folder_id: folderId })
+            });
+            if (!response.ok) throw new Error('Failed to save flashcards.');
+            const result = await response.json();
+            // Reload to get new IDs for the created cards. A more advanced implementation
+            // would get the new IDs from the response and update the local state.
+            window.location.reload(); 
+            return result;
+        } catch (error) {
+            console.error('Save Error:', error);
+            alert('Could not save flashcards. Please try again.');
+        }
+    }
 
     function openEmojiPicker() {
         const emojiModal = document.getElementById('emoji-picker-modal');
