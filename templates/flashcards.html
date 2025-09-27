@@ -58,6 +58,16 @@
     </div>
 </div>
 
+<!-- Emoji Picker Modal -->
+<div id="emoji-picker-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content emoji-picker-content">
+        <h3>Select an Icon</h3>
+        <div id="emoji-grid">
+            <!-- Emojis will be populated here by JS -->
+        </div>
+    </div>
+</div>
+
 <!-- Move Item Modal (Structure Only) -->
 <div id="move-item-modal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
@@ -375,15 +385,10 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
             e.preventDefault();
             const card = target.closest('.item-card');
-            const itemId = card.dataset.itemId;
-            const newIcon = prompt(`Enter a single emoji icon:`);
-
-            // A simple validation to check if it's likely an emoji
-            if (newIcon && newIcon.trim().length > 0 && /\p{Emoji}/u.test(newIcon.trim())) {
-                updateItemIcon(itemId, newIcon.trim());
-            } else if (newIcon) {
-                alert("Please enter a valid emoji.");
-            }
+            itemToChangeIcon = {
+                id: card.dataset.itemId
+            };
+            openEmojiPicker();
         }
 
         // Handle delete action
@@ -460,6 +465,46 @@ document.addEventListener('DOMContentLoaded', function() {
             moveItemModal.style.display = 'none';
         }
     });
+
+    function openEmojiPicker() {
+        const emojiModal = document.getElementById('emoji-picker-modal');
+        const emojiGrid = document.getElementById('emoji-grid');
+        const EMOJI_CATEGORIES = {
+            'School & Science': ['📚', '🧪', '🔬', '🧮', '📜', '💡', '🧠', '✍️', '📈', '🧬'],
+            'General': ['📁', '⭐', '🎯', '🔥', '✅', '❌', '📌', '📎', '💬', '❓', '❗'],
+            'Nature': ['🌍', '🌿', '🌳', '🌊', '☀️', '🌙', '🌸', '🍁', '🍄', '🐚'],
+            'Animals': ['🐶', '🐱', '🐭', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮'],
+            'Food': ['🍎', '🍌', '🍇', '🍓', '🍔', '🍕', '🍟', '🍩', '🍪', '🍦']
+        };
+        
+        emojiGrid.innerHTML = '';
+        for (const category in EMOJI_CATEGORIES) {
+            const categoryHeader = document.createElement('div');
+            categoryHeader.className = 'emoji-category-header';
+            categoryHeader.textContent = category;
+            emojiGrid.appendChild(categoryHeader);
+
+            EMOJI_CATEGORIES[category].forEach(emoji => {
+                const emojiBtn = document.createElement('button');
+                emojiBtn.className = 'emoji-btn';
+                emojiBtn.textContent = emoji;
+                emojiBtn.onclick = () => selectEmoji(emoji);
+                emojiGrid.appendChild(emojiBtn);
+            });
+        }
+
+        emojiModal.style.display = 'flex';
+        emojiModal.onclick = (e) => {
+            if (e.target === emojiModal) emojiModal.style.display = 'none';
+        };
+    }
+
+    function selectEmoji(emoji) {
+        if (itemToChangeIcon) {
+            updateItemIcon(itemToChangeIcon.id, emoji);
+        }
+        document.getElementById('emoji-picker-modal').style.display = 'none';
+    }
 
     async function updateItemIcon(itemId, newIcon) {
         try {

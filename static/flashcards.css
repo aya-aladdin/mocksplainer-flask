@@ -287,3 +287,58 @@
     background-color: #eef2ff;
     font-weight: 600;
 }
+
+/* Emoji Picker Styles */
+.emoji-picker-content {
+    max-width: 320px; /* Slightly wider for a better grid */
+    padding: 16px;
+}
+
+.emoji-picker-content h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--muted);
+    margin-bottom: 1rem;
+}
+
+#emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr); /* More columns for a denser look */
+    gap: 4px;
+    max-height: 250px; /* Set a max height to enable scrolling */
+    overflow-y: auto; /* Add a scrollbar when content overflows */
+    padding-right: 8px; /* Space for the scrollbar */
+}
+
+.emoji-category-header {
+    grid-column: 1 / -1; /* Make header span all columns */
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.emoji-category-header:first-of-type {
+    margin-top: 0;
+}
+
+.emoji-btn {
+    background: transparent; /* Cleaner, no background */
+    border: none;
+    border-radius: 8px;
+    padding: 4px;
+    font-size: 1.5rem; /* Smaller emoji */
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.emoji-btn:hover {
+    background-color: #e9ecef; /* Subtle hover effect */
+}
+
+#move-folder-tree a.active {
+    background-color: #eef2ff;
+    font-weight: 600;
+}
