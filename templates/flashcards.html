@@ -75,6 +75,10 @@
                     <label for="ai-topic">Topic</label>
                     <input type="text" id="ai-topic" class="form-control" placeholder="e.g., The Krebs Cycle" required>
                 </div>
+                <div class="form-group">
+                    <label for="ai-notes">Notes (Optional)</label>
+                    <textarea id="ai-notes" class="form-control" rows="4" placeholder="Paste your notes here... The AI will use this as context."></textarea>
+                </div>
                 <button type="submit" class="btn btn-primary">Generate Flashcards</button>
                 <div id="ai-loading-spinner" style="display: none; margin-top: 1rem;">Generating...</div>
             </form>
@@ -225,16 +229,22 @@ document.addEventListener('DOMContentLoaded', function() {
             flashcardEl.dataset.itemId = flashcard.id;
             flashcardEl.dataset.itemType = 'flashcard';
             flashcardEl.innerHTML = `
-                <div class="item-content" onclick="this.parentElement.classList.toggle('flipped')">
-                    <div class="flashcard-front">
+                <div class="flashcard-inner" onclick="this.parentElement.classList.toggle('flipped')">
+                    <div class="item-content flashcard-front">
                         <div class="item-name">${flashcard.question}</div>
                     </div>
-                    <div class="flashcard-back">
+                    <div class="item-content flashcard-back">
                         <p>${flashcard.answer}</p>
                     </div>
                 </div>
                 <div class="flashcard-footer">
                     <div class="flashcard-item-topic">${flashcard.topic}</div>
+                    <div class="item-menu-btn">...</div>
+                    <div class="item-menu-dropdown">
+                        <a href="#" class="rename-btn">Rename</a>
+                        <a href="#" class="move-btn">Move</a>
+                        <a href="#" class="delete-btn">Delete</a>
+                    </div>
                 </div>
             `;
             // Could add a click handler to open a detail view
@@ -368,11 +378,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (target.classList.contains('item-menu-btn')) {
             e.stopPropagation();
             // Close other menus
-            document.querySelectorAll('.item-menu-dropdown.visible').forEach(menu => {
-                if (menu !== target.nextElementSibling) {
-                    menu.classList.remove('visible');
+            document.querySelectorAll('.item-card.menu-open').forEach(card => {
+                if (card !== target.closest('.item-card')) {
+                    card.classList.remove('menu-open');
+                    card.querySelector('.item-menu-dropdown').classList.remove('visible');
                 }
             });
+            target.closest('.item-card').classList.toggle('menu-open');
             target.nextElementSibling.classList.toggle('visible');
         }
 
@@ -510,7 +522,8 @@ document.addEventListener('DOMContentLoaded', function() {
         aiLoadingSpinner.style.display = 'block';
 
         const topic = document.getElementById('ai-topic').value;
-        const text = topic; // Using topic as the generation text
+        const notes = document.getElementById('ai-notes').value;
+        const text = notes || topic; // Use notes if provided, otherwise fall back to topic
 
         try {
             // 1. Generate flashcards from AI
