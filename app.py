@@ -217,6 +217,62 @@ def delete_item():
         db.session.rollback()
         return jsonify({'error': 'Failed to delete item.'}), 500
 
+@app.route('/delete_items_bulk', methods=['POST'])
+@login_required
+def delete_items_bulk():
+    """Deletes multiple items (folders/flashcards) in bulk."""
+    data = request.json
+    items_to_delete = data.get('items', []) # Expects a list of {'id': item_id, 'type': item_type}
+
+    if not items_to_delete:
+        return jsonify({'message': 'No items selected for deletion.'}), 200
+
+    try:
+        for item_data in items_to_delete:
+            item_id = item_data.get('id')
+            item_type = item_data.get('type')
+
+            if item_type == 'flashcard':
+                item = Flashcard.query.get(item_id)
+                if item and item.user_id == current_user.id:
+                    db.session.delete(item)
+            elif item_type == 'folder':
+                item = Folder.query.get(item_id)
+                if item and item.user_id == current_user.id:
+                    if item.subfolders or item.flashcards.count() > 0:
+                        # For safety, skip non-empty folders and let the frontend know.
+                        # A more advanced implementation could allow recursive deletion.
+                        db.session.rollback()
+                        return jsonify({'error': f'Cannot delete non-empty folder: "{item.name}".'}), 400
+                    db.session.delete(item)
+        
+        db.session.commit()
+        return jsonify({'message': 'Selected items deleted successfully.'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Bulk Delete Error: {e}")
+        return jsonify({'error': 'An error occurred during bulk deletion.'}), 500
+
+@app.route('/move_items_bulk', methods=['POST'])
+@login_required
+def move_items_bulk():
+    """Moves multiple items to a new parent folder."""
+    data = request.json
+    items_to_move = data.get('items', [])
+    target_folder_id = data.get('target_folder_id')
+
+    try:
+        for item_data in items_to_move:
+            item_id = item_data.get('id')
+            item_type = item_data.get('type')
+            # This re-uses the logic from the single move_item endpoint
+            move_item_logic(item_id, item_type, target_folder_id, current_user.id)
+        db.session.commit()
+        return jsonify({'message': 'Items moved successfully.'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to move items.'}), 500
+
 @app.route('/move_item', methods=['POST'])
 @login_required
 def move_item():
@@ -227,20 +283,23 @@ def move_item():
     target_folder_id = data.get('target_folder_id')
 
     try:
-        if item_type == 'flashcard':
-            item = Flashcard.query.get(item_id)
-            if item and item.user_id == current_user.id:
-                item.folder_id = target_folder_id
-        elif item_type == 'folder':
-            item = Folder.query.get(item_id)
-            if item and item.user_id == current_user.id:
-                item.parent_id = target_folder_id
-        
+        move_item_logic(item_id, item_type, target_folder_id, current_user.id)
         db.session.commit()
         return jsonify({'message': 'Item moved successfully.'})
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'Failed to move item.'}), 500
+
+def move_item_logic(item_id, item_type, target_folder_id, user_id):
+    """Shared logic for moving an item, without the commit."""
+    if item_type == 'flashcard':
+        item = Flashcard.query.get(item_id)
+        if item and item.user_id == user_id:
+            item.folder_id = target_folder_id
+    elif item_type == 'folder':
+        item = Folder.query.get(item_id)
+        if item and item.user_id == user_id:
+            item.parent_id = target_folder_id
 
 # --- Hack Club AI Chat Endpoint ---
 
