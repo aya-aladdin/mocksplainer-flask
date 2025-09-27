@@ -3,36 +3,51 @@
 {% block title %}Test: {{ test.topic }}{% endblock %}
 
 {% block content %}
-<div class="container narrow">
-    <div class="dashboard-header">
-        <h1>Test: {{ test.topic }}</h1>
-        <p class="muted">Generated on {{ test.timestamp.strftime('%d %B %Y') }}</p>
-    </div>
-
-    <div class="test-questions-container">
-        {% for q in test.questions|sort(attribute='question_number') %}
-        <div class="card test-question-card">
-            <div class="pad">
-                <div class="question-header">
-                    <h4>Question {{ q.question_number }}</h4>
-                    <span class="marks-label">[{{ q.marks }} marks]</span>
-                </div>
-                <div class="question-text">
-                    {{ q.question_text | markdown }}
-                </div>
-                <div class="answer-area">
-                    <textarea class="form-control" rows="5" placeholder="Type your answer here..."></textarea>
-                </div>
-                <div class="question-actions">
-                    <button class="btn btn-secondary btn-sm">Ask AI Helper</button>
-                </div>
+<div class="container" style="padding: 0;">
+    <div class="test-layout-container">
+        <aside class="test-sidebar">
+            <h3>Questions</h3>
+            <div class="test-history-list">
+                <ul>
+                    {% for q in test.questions|sort(attribute='question_number') %}
+                    <li>
+                        <a href="#question-{{ q.id }}">
+                            <span class="test-topic">Question {{ q.question_number }}</span>
+                            <span class="test-date">[{{ q.marks }}]</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
-        </div>
-        {% endfor %}
-    </div>
-
-    <div class="test-submission-area">
-        <button class="btn btn-primary">Submit & View Mark Scheme</button>
+        </aside>
+        <main class="test-main">
+            <div class="dashboard-header" style="margin-bottom: 1rem;">
+                <h1>Test: {{ test.topic }}</h1>
+                <p class="muted">Generated on {{ test.timestamp.strftime('%d %B %Y') }}</p>
+            </div>
+            <div class="test-questions-container">
+                {% for q in test.questions|sort(attribute='question_number') %}
+                <div class="card test-question-card" id="question-{{ q.id }}">
+                    <div class="pad">
+                        <div class="question-header">
+                            <h4>Question {{ q.question_number }}</h4>
+                            <span class="marks-label">[{{ q.marks }} marks]</span>
+                        </div>
+                        <div class="question-text">{{ q.question_text | markdown }}</div>
+                        <div class="answer-area">
+                            <textarea class="form-control" rows="5" placeholder="Type your answer here..." data-question-id="{{ q.id }}"></textarea>
+                        </div>
+                        <div class="question-actions">
+                            <button class="btn btn-secondary btn-sm">Ask AI Helper</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="test-submission-area">
+                <button class="btn btn-primary">Submit & View Mark Scheme</button>
+            </div>
+        </main>
     </div>
 </div>
 {% endblock %}
@@ -40,7 +55,6 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Find all question text elements and render any math/formulas within them
     document.querySelectorAll('.question-text').forEach(function(element) {
         renderMathInElement(element, {
             delimiters: [

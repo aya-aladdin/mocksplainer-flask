@@ -9,7 +9,6 @@
         <p class="muted">Create IGCSE-style exams on any topic using AI and track your performance.</p>
     </div>
 
-    <!-- Test Generator Card -->
     <div class="card leaderboard-card">
         <div class="pad">
             <h3 class="card-section-title">Create a New Test</h3>
@@ -34,7 +33,6 @@
         </div>
     </div>
 
-    <!-- Previously Generated Tests -->
     <div class="card leaderboard-card">
         <div class="pad">
             <h3 class="card-section-title">My Tests</h3>
@@ -61,8 +59,8 @@
 <script>
 document.getElementById('test-generator-form').addEventListener('submit', async function(e) {
     e.preventDefault();
-    const topic = document.getElementById('test-topic').value;
-    const num_questions = document.getElementById('num-questions').value;
+    const topic = document.getElementById('test-topic').value.trim();
+    const num_questions = 10; // Hardcoding for a cleaner UI, can be brought back if needed
     const spinner = document.getElementById('test-loading-spinner');
     spinner.style.display = 'block';
 

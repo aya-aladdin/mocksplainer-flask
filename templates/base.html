@@ -36,15 +36,17 @@
         {% endif %}
     {% endwith %}
 
-    <main class="main-content">
-        {% block content %}{% endblock %}
-    </main>
+    {% block full_width_content %}
+        <main class="main-content">
+            <div class="container">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    {% endblock %}
 
-    <!-- Start of Footer -->
     <footer class="footer">
         <div class="footer-container">
             <div class="footer-grid">
-                <!-- Column 1: Home -->
                 <div>
                     <h4 class="footer-heading">Home</h4>
                     <ul>
@@ -53,7 +55,6 @@
                     </ul>
                 </div>
 
-                <!-- Column 2: Resources -->
                 <div>
                     <h4 class="footer-heading">Resources</h4>
                     <ul>
@@ -68,7 +69,6 @@
                     </ul>
                 </div>
 
-                <!-- Column 3: Members -->
                 <div>
                     <h4 class="footer-heading">Members</h4>
                     <ul>
@@ -76,7 +76,6 @@
                     </ul>
                 </div>
 
-                <!-- Column 4: Company -->
                 <div>
                     <h4 class="footer-heading">Company</h4>
                     <ul>
@@ -92,7 +91,6 @@
                     </ul>
                 </div>
 
-                <!-- Column 5: Subjects (Placeholder) -->
                 <div>
                     <h4 class="footer-heading">Subjects</h4>
                     <ul>
@@ -103,7 +101,6 @@
                     </ul>
                 </div>
 
-                <!-- Column 6: Social Media -->
                 <div>
                     <h4 class="footer-heading">Follow us</h4>
                     <ul>
@@ -121,7 +118,6 @@
             </div>
         </div>
     </footer>
-    <!-- End of Footer -->
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>

@@ -154,7 +154,7 @@ font-weight: 700;
 
 .container {
 max-width: 1300px;
-margin: 24px auto;
+margin: 16px auto;
 padding: 0 8px;
 }
 
@@ -303,14 +303,12 @@ color: var(--muted);
 margin-top: 1rem;
 }
 
-/* New class for the background section */
 .section-bg-darker {
     background-color: #e9ecef;
     padding: 2rem 0;
     margin-top: 4rem;
 }
 
-        /* Footer Styles */
         .footer {
             background-color: #1a202c; /* Dark blue/gray */
             color: #a0aec0; /* Lighter text color */
@@ -806,7 +804,6 @@ margin-top: 1rem;
     vertical-align: middle;
 }
 
-/* Profile Dashboard Styles */
 .profile-dashboard {
     padding-top: 2rem;
     padding-bottom: 4rem;
@@ -893,14 +890,13 @@ margin-top: 1rem;
     text-decoration: underline;
 }
 
-/* --- Profile Page Additions --- */
 .dashboard-section-grid {
     grid-template-columns: 1fr 1fr;
-    gap: 2rem; /* Added gap for consistency */
+    gap: 2rem;
 }
 
 .leaderboard-card {
-    margin-top: 2rem; /* This will now be applied */
+    margin-top: 2rem;
     margin-bottom: 2rem;
 }
 
@@ -915,7 +911,6 @@ margin-top: 1rem;
     font-size: 1.2rem;
 }
 
-/* --- Profile Page Performance List --- */
 .performance-list { list-style: none; padding: 0; margin: 0; }
 .performance-list li { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; }
 .performance-list .topic-name { flex-basis: 30%; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -923,7 +918,6 @@ margin-top: 1rem;
 .performance-list .progress-bar { height: 100%; background-color: var(--accent); border-radius: 5px; transition: width 0.5s ease-in-out; }
 .performance-list .accuracy-label { font-size: 0.9rem; font-weight: 500; min-width: 40px; text-align: right; }
 
-/* --- Test Generator & Taker Styles --- */
 .test-questions-container {
     display: flex;
     flex-direction: column;
@@ -931,7 +925,7 @@ margin-top: 1rem;
 }
 
 .test-question-card {
-    transition: none;
+    transition: all 0.2s ease-in-out;
 }
 .test-question-card:hover {
     transform: none;
@@ -950,3 +944,86 @@ margin-top: 1rem;
 .question-text p:last-child { margin-bottom: 0; }
 .answer-area { margin-bottom: 1rem; }
 .test-submission-area { text-align: center; margin-top: 3rem; }
+
+/* --- New Gemini-style Test Layout --- */
+.test-layout-container {
+    display: flex;
+    gap: 3rem;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 8px;
+}
+
+.test-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 1rem;
+    align-self: flex-start;
+    position: sticky;
+    top: 24px;
+}
+
+.test-sidebar h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0 0.8rem 0.5rem 0.8rem;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.5rem;
+}
+
+.test-history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+}
+
+.test-history-list li a {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0.8rem;
+    border-radius: 8px;
+    color: var(--ink);
+    font-size: 0.9rem;
+}
+
+.test-history-list li a:hover {
+    background-color: #f0f4f9;
+}
+
+.test-history-list .test-topic {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.test-history-list .test-date {
+    font-size: 0.85rem;
+    color: var(--muted);
+    flex-shrink: 0;
+    margin-left: 1rem;
+}
+
+.test-main {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.answer-area textarea.form-control {
+    background-color: #f8f9fa;
+    border-color: #f8f9fa;
+    min-height: 120px;
+    font-size: 0.95rem;
+}
+
+.answer-area textarea.form-control:focus {
+    background-color: var(--panel);
+    border-color: var(--accent);
+}

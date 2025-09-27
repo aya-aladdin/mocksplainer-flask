@@ -5,18 +5,15 @@
 
 {% block content %}
 <div class="flashcards-layout">
-    <!-- Sidebar for Folders -->
     <aside class="flashcards-sidebar">
         <div class="sidebar-header">
             <h3>My Collection</h3>
             <button class="btn btn-ghost btn-sm" id="new-folder-btn">+ New Folder</button>
         </div>
         <div id="folder-tree">
-            <!-- Folder structure will be rendered here by JavaScript -->
         </div>
     </aside>
 
-    <!-- Main Content Area -->
     <main class="flashcards-main">
         <div class="flashcards-main-header">
             <div class="header-title-container">
@@ -29,22 +26,17 @@
             </div>
         </div>
 
-        <!-- Breadcrumbs -->
         <nav id="breadcrumbs" aria-label="breadcrumb"></nav>
 
-        <!-- Items (Folders and Flashcards) -->
         <div id="items-container" class="items-grid">
-            <!-- Items will be rendered here by JavaScript -->
         </div>
     </main>
 </div>
 
-<!-- Select Folders for Learn Mode Modal -->
 <div id="select-learn-folders-modal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
         <h3>Select folders to learn</h3>
         <div id="select-learn-folders-tree" style="max-height: 300px; overflow-y: auto; margin: 1rem 0;">
-            <!-- Folder tree with checkboxes will be rendered here -->
         </div>
         <div class="modal-actions">
             <button class="btn btn-secondary" id="cancel-learn-selection-btn">Cancel</button>
@@ -53,7 +45,6 @@
     </div>
 </div>
 
-<!-- Learn Mode Modal -->
 <div id="learn-mode-modal" class="modal-overlay" style="display: none;">
     <div class="learn-modal-content">
         <button class="modal-close-btn" id="close-learn-modal">&times;</button>
@@ -77,7 +68,6 @@
     </div>
 </div>
 
-<!-- Create Flashcard Modal -->
 <div id="create-flashcard-modal" class="modal-overlay" style="display: none;">
     <div class="modal-content creator-modal-content">
         <button class="modal-close-btn" id="close-create-modal">&times;</button>
@@ -86,7 +76,6 @@
             <button class="tab-link" data-tab="create-manual">Create Manually</button>
         </div>
 
-        <!-- AI Generator Tab -->
         <div id="generate-ai" class="tab-content" style="display: block;">
             <form id="ai-generator-form">
                 <p class="muted" style="font-size: 0.9rem; margin-bottom: 1rem;">Enter a topic or paste your notes, and the AI will generate flashcards for you.</p>
@@ -103,7 +92,6 @@
             </form>
         </div>
 
-        <!-- Manual Creator Tab -->
         <div id="create-manual" class="tab-content" style="display: none;">
             <form id="manual-creator-form">
                 <div class="form-group">
@@ -120,22 +108,18 @@
     </div>
 </div>
 
-<!-- Emoji Picker Modal -->
 <div id="emoji-picker-modal" class="modal-overlay" style="display: none;">
     <div class="modal-content emoji-picker-content">
         <h3>Select an Icon</h3>
         <div id="emoji-grid">
-            <!-- Emojis will be populated here by JS -->
         </div>
     </div>
 </div>
 
-<!-- Move Item Modal (Structure Only) -->
 <div id="move-item-modal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
         <h3>Move Item to...</h3>
         <div id="move-folder-tree">
-            <!-- Simplified folder tree for selection -->
         </div>
         <div class="modal-actions">
             <button class="btn btn-secondary" id="cancel-move-btn">Cancel</button>
@@ -144,7 +128,6 @@
     </div>
 </div>
 
-<!-- Bulk Action Bar -->
 <div id="bulk-action-bar" class="bulk-action-bar">
     <span id="selection-count" class="selection-count">0 items selected</span>
     <div class="actions">
@@ -159,7 +142,6 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // --- STATE ---
     const fullData = {
         folders: {{ folder_structure | tojson | safe }},
         root_flashcards: {{ root_flashcards | tojson | safe }}
@@ -170,7 +152,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let selectedItems = new Set();
     let breadcrumbs = [];
 
-    // --- DOM ELEMENTS ---
     const folderTreeEl = document.getElementById('folder-tree');
     const itemsContainerEl = document.getElementById('items-container');
     const currentFolderNameEl = document.getElementById('current-folder-name');
@@ -194,8 +175,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const learnModeModal = document.getElementById('learn-mode-modal');
     const closeLearnModalBtn = document.getElementById('close-learn-modal');
 
-
-    // --- RENDER FUNCTIONS ---
 
     function renderFolderTree(folders, parentElement, level = 0) {
         const ul = document.createElement('ul');
@@ -230,7 +209,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         folders.forEach(folder => {
-            // Prevent moving a folder into itself
             if (itemToMove && itemToMove.type === 'folder' && itemToMove.id === folder.id) {
                 return;
             }
@@ -241,7 +219,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'move-folder-item';
 
-            // Add toggle arrow if there are subfolders
             if (hasSubfolders) {
                 const toggleArrow = document.createElement('span');
                 toggleArrow.className = 'toggle-arrow';
@@ -308,9 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     function renderItems(items) {
-        itemsContainerEl.innerHTML = ''; // Clear current items
-        
-        // Render subfolders
+        itemsContainerEl.innerHTML = '';
         (items.folders || []).forEach(folder => {
             const folderEl = document.createElement('div');
             folderEl.className = 'item-card folder-item';
@@ -334,7 +309,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isSelected) folderEl.classList.add('selected');
 
             folderEl.addEventListener('click', (e) => {
-                // Only navigate if the click was not on the menu button or inside the dropdown
                 if (selectedItems.size > 0) {
                     if (!e.target.closest('.item-menu-btn') && !e.target.closest('.item-menu-dropdown')) {
                         toggleSelection(folderEl);
@@ -346,10 +320,9 @@ document.addEventListener('DOMContentLoaded', function() {
             itemsContainerEl.appendChild(folderEl);
         });
 
-        // Render flashcards
         (items.flashcards || []).forEach(flashcard => {
             const flashcardEl = document.createElement('div');
-            flashcardEl.className = 'item-card flashcard-item'; // Keep this class for grid styling
+            flashcardEl.className = 'item-card flashcard-item';
             flashcardEl.dataset.itemId = flashcard.id;
             flashcardEl.dataset.itemType = 'flashcard';
             const uniqueId = `flashcard-${flashcard.id}`;
@@ -377,7 +350,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             flashcardEl.addEventListener('click', (e) => {
                 if (selectedItems.size > 0) {
-                    // If in selection mode, clicking the card toggles selection
                     if (!e.target.closest('.item-menu-btn') && !e.target.closest('.item-menu-dropdown')) {
                         toggleSelection(flashcardEl);
                     }
@@ -429,8 +401,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- DATA & NAVIGATION LOGIC ---
-
     function findFolder(folderId, folders = fullData.folders) {
         for (const folder of folders) {
             if (folder.id === folderId) return folder;
@@ -455,7 +425,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function navigateToFolder(folderId) {
         currentFolderId = folderId;
         if (folderId === null) {
-            // Root view
             currentFolderNameEl.innerText = 'All Flashcards';
             breadcrumbs = [];
             renderItems({ folders: fullData.folders, flashcards: fullData.root_flashcards });
@@ -464,22 +433,18 @@ document.addEventListener('DOMContentLoaded', function() {
             if (folder) {
                 currentFolderNameEl.innerText = folder.name;
                 breadcrumbs = buildBreadcrumbs(folderId);
-                // Clear selection when navigating into a new folder
                 selectedItems.clear();
                 renderItems({ folders: folder.subfolders, flashcards: folder.flashcards });
             }
         }
         renderBreadcrumbs();
 
-        // Update active class in sidebar
         document.querySelectorAll('#folder-tree a').forEach(a => a.classList.remove('active'));
         if (folderId) {
             const activeLink = document.getElementById(`folder-link-${folderId}`);
             if (activeLink) activeLink.classList.add('active');
         }
     }
-
-    // --- EVENT HANDLERS ---
 
     newFolderBtn.addEventListener('click', async () => {
         const name = prompt('Enter new folder name:');
@@ -494,7 +459,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const newFolder = await response.json();
                 
-                // Add to local data structure and re-render
                 const newFolderData = { ...newFolder, subfolders: [], flashcards: [] };
                 if (currentFolderId === null) {
                     fullData.folders.push(newFolderData);
@@ -503,7 +467,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     parent.subfolders.push(newFolderData);
                 }
                 
-                // Re-render everything
                 folderTreeEl.innerHTML = '';
                 renderFolderTree(fullData.folders, folderTreeEl);
                 navigateToFolder(currentFolderId);
@@ -530,14 +493,11 @@ document.addEventListener('DOMContentLoaded', function() {
         createFlashcardModal.style.display = 'none';
     });
 
-    // Event delegation for item menus
     itemsContainerEl.addEventListener('click', function(e) {
         const target = e.target;
 
-        // Prevent card navigation when clicking menu button
         if (target.classList.contains('item-menu-btn')) {
             e.stopPropagation();
-            // Close other menus
             document.querySelectorAll('.item-card.menu-open').forEach(card => {
                 if (card !== target.closest('.item-card')) {
                     card.classList.remove('menu-open');
@@ -548,7 +508,6 @@ document.addEventListener('DOMContentLoaded', function() {
             target.nextElementSibling.classList.toggle('visible');
         }
 
-        // Handle select/deselect from menu
         if (target.classList.contains('select-toggle-btn')) {
             e.stopPropagation();
             e.preventDefault();
@@ -556,7 +515,6 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleSelection(card);
         }
 
-        // Handle rename action
         if (target.classList.contains('rename-btn')) {
             e.stopPropagation();
             e.preventDefault();
@@ -575,15 +533,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => {
                     if (data.message) {
-                        // For simplicity, we reload the page to see changes.
-                        // A more advanced implementation would update the state locally.
                         window.location.reload();
                     }
                 });
             }
         }
 
-        // Handle move action
         if (target.classList.contains('move-btn')) {
             e.stopPropagation();
             e.preventDefault();
@@ -595,7 +550,6 @@ document.addEventListener('DOMContentLoaded', function() {
             openMoveModal();
         }
 
-        // Handle change icon action
         if (target.classList.contains('change-icon-btn')) {
             e.stopPropagation();
             e.preventDefault();
@@ -606,7 +560,6 @@ document.addEventListener('DOMContentLoaded', function() {
             openEmojiPicker();
         }
 
-        // Handle delete action
         if (target.classList.contains('delete-btn')) {
             e.stopPropagation();
             e.preventDefault();
@@ -624,7 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => {
                     if (data.message) {
-                        card.remove(); // Remove from DOM instantly
+                        card.remove();
                     } else {
                         alert(data.error || 'Failed to delete item.');
                     }
@@ -648,8 +601,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         updateBulkActionBar();
     }
-
-    // --- BULK ACTION LOGIC ---
 
     cancelSelectionBtn.addEventListener('click', () => {
         selectedItems.clear();
@@ -675,7 +626,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Failed to delete items.');
                 
-                // On success, remove from DOM and clear selection
                 itemsToDelete.forEach(item => {
                     const card = itemsContainerEl.querySelector(`[data-item-id='${item.id}'][data-item-type='${item.type}']`);
                     if (card) card.remove();
@@ -694,14 +644,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (selectedItems.size > 0) openMoveModal();
     });
 
-    // --- MODAL LOGIC ---
-
     function openMoveModal() {
         moveFolderTreeEl.innerHTML = '';
-        // Add a "Root" option
         const rootLink = document.createElement('a');
         rootLink.href = '#';
-        rootLink.dataset.folderId = 'null'; // Use string 'null' for root
+        rootLink.dataset.folderId = 'null';
         rootLink.innerHTML = `🏠 All Flashcards (Root)`;
         rootLink.addEventListener('click', (e) => {
             e.preventDefault();
@@ -738,7 +685,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             if (!response.ok) throw new Error('Failed to move item.');
             
-            window.location.reload(); // Reload to see changes
+            window.location.reload();
         } catch (error) {
             console.error(error);
             alert('Error moving item.');
@@ -747,7 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     cancelMoveBtn.addEventListener('click', () => {
         moveItemModal.style.display = 'none';
-        itemToMove = null; // Clear single item move state
+        itemToMove = null;
     });
 
     moveItemModal.addEventListener('click', (e) => {
@@ -756,7 +703,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- Learn Mode Logic ---
     let learnSession = {
         flashcards: [],
         currentIndex: 0,
@@ -790,7 +736,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (data.flashcards && data.flashcards.length > 0) {
-                // Shuffle the flashcards for a random order
                 learnSession.flashcards = data.flashcards.sort(() => Math.random() - 0.5);
                 learnSession.currentIndex = 0;
                 learnSession.correct = 0;
@@ -810,7 +755,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function displayCurrentLearnCard() {
         if (learnSession.currentIndex >= learnSession.flashcards.length) {
-            // Session finished
             alert(`Session Complete!\n\nCorrect: ${learnSession.correct}\nIncorrect: ${learnSession.incorrect}`);
             learnModeModal.style.display = 'none';
             return;
@@ -821,11 +765,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('learn-answer').textContent = card.answer;
         document.getElementById('learn-progress').textContent = `${learnSession.currentIndex + 1} / ${learnSession.flashcards.length}`;
         
-        // Reset card state
         learnModeModal.querySelector('.learn-modal-content').classList.remove('flipped');
         document.getElementById('learn-feedback-btns').style.display = 'none';
 
-        // Show feedback buttons after a delay to encourage flipping
         setTimeout(() => {
             if (learnModeModal.querySelector('.learn-modal-content').classList.contains('flipped')) {
                 document.getElementById('learn-feedback-btns').style.display = 'flex';
@@ -860,7 +802,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('learn-right-btn').addEventListener('click', () => recordAndProceed(true));
     document.getElementById('learn-wrong-btn').addEventListener('click', () => recordAndProceed(false));
 
-    // --- Flashcard Creation Logic ---
     const aiGeneratorForm = document.getElementById('ai-generator-form');
     const aiLoadingSpinner = document.getElementById('ai-loading-spinner');
 
@@ -870,10 +811,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const topic = document.getElementById('ai-topic').value;
         const notes = document.getElementById('ai-notes').value;
-        const text = notes || topic; // Use notes if provided, otherwise fall back to topic
+        const text = notes || topic;
 
         try {
-            // 1. Generate flashcards from AI
             const genResponse = await fetch('{{ url_for("generate_flashcards_ai") }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -885,10 +825,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await genResponse.json();
             const generatedFlashcards = data.flashcards.map(fc => ({ ...fc, topic: topic }));
 
-            // 2. Save the generated flashcards to the DB
             const saveResult = await saveFlashcards(generatedFlashcards, currentFolderId);
             if (saveResult) {
-                // 3. Add them to the page and local state
                 generatedFlashcards.forEach(fc => {
                     addFlashcardToDOM(fc);
                     if (currentFolderId === null) {
@@ -917,8 +855,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             if (!response.ok) throw new Error('Failed to save flashcards.');
             const result = await response.json();
-            // Reload to get new IDs for the created cards. A more advanced implementation
-            // would get the new IDs from the response and update the local state.
             window.location.reload(); 
             return result;
         } catch (error) {
@@ -982,31 +918,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- Tab Switching in Creator Modal ---
     const creatorTabs = document.querySelector('.creator-tabs');
     creatorTabs.addEventListener('click', (e) => {
         if (e.target.classList.contains('tab-link')) {
             const tabId = e.target.dataset.tab;
 
-            // Update active tab button
             creatorTabs.querySelectorAll('.tab-link').forEach(tab => tab.classList.remove('active'));
             e.target.classList.add('active');
 
-            // Show correct tab content
             document.querySelectorAll('#create-flashcard-modal .tab-content').forEach(content => {
                 content.style.display = content.id === tabId ? 'block' : 'none';
             });
         }
     });
 
-    // --- Manual Flashcard Creation ---
     const manualCreatorForm = document.getElementById('manual-creator-form');
     manualCreatorForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const question = document.getElementById('manual-question').value;
         const answer = document.getElementById('manual-answer').value;
 
-        let topic = "General"; // Default topic if in root
+        let topic = "General";
         if (currentFolderId) {
             const parentFolder = findFolder(currentFolderId);
             if (parentFolder) {
@@ -1018,7 +950,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const saveResult = await saveFlashcards([newFlashcard], currentFolderId);
         if (saveResult) {
-            // Add to DOM and local state
             addFlashcardToDOM(newFlashcard);
             if (currentFolderId === null) {
                 fullData.root_flashcards.push(newFlashcard);
@@ -1031,11 +962,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 
-    // Global click listener to close menus
     document.addEventListener('click', function (e) {
-        // If the click is not on a menu button and not inside a dropdown
         if (!e.target.closest('.item-menu-btn') && !e.target.closest('.item-menu-dropdown')) {
-            // Close all open menus
             document.querySelectorAll('.item-card.menu-open').forEach(card => {
                 card.classList.remove('menu-open');
                 card.querySelector('.item-menu-dropdown').classList.remove('visible');
@@ -1043,7 +971,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- INITIALIZATION ---
     function initialize() {
         folderTreeEl.innerHTML = '';
         renderFolderTree(fullData.folders, folderTreeEl);

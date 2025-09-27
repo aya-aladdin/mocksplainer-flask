@@ -1,15 +1,11 @@
-/* --- FLASHCARDS SYSTEM LAYOUT (New/Major Fix) --- */
-
 .flashcards-layout {
     display: flex;
-    min-height: calc(100vh - 60px); /* Adjust based on your topbar height */
+    min-height: calc(100vh - 60px);
     max-width: 1400px;
     margin: 0 auto;
-    padding: 16px; /* Smaller margin */
-    gap: 32px; /* More padding between sections */
+    padding: 16px;
+    gap: 32px;
 }
-
-/* --- SIDEBAR (Left Column) --- */
 
 .flashcards-sidebar {
     width: 280px;
@@ -72,12 +68,9 @@
     font-weight: 600;
 }
 
-
-/* --- MAIN CONTENT (Right Column) --- */
-
 .flashcards-main {
     flex-grow: 1;
-    min-width: 0; /* Important for flex-grow to work correctly */
+    min-width: 0;
 }
 
 .flashcards-main-header {
@@ -109,8 +102,6 @@
     color: var(--accent-dark);
 }
 
-/* --- ITEMS GRID --- */
-
 .items-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -123,7 +114,7 @@
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     padding: 18px;
-    min-height: 150px; /* Increased height for more question space */
+    min-height: 150px;
     box-shadow: var(--shadow-sm);
     transition: all 0.2s ease-in-out;
     cursor: pointer;
@@ -134,14 +125,14 @@
 }
 
 .item-card.menu-open {
-    z-index: 5; /* Bring the active card forward */
-    overflow: visible; /* Allow dropdown to show outside card bounds */
+    z-index: 5;
+    overflow: visible;
 }
 
 .item-card.selected {
     border-color: var(--accent);
-    background-color: #eef2ff; /* A light blue to indicate selection */
-    transform: translateY(0); /* Override hover effect */
+    background-color: #eef2ff;
+    transform: translateY(0);
     box-shadow: var(--ring);
 }
 
@@ -161,7 +152,6 @@
     font-weight: 600;
     font-size: 1.1rem;
     color: var(--ink);
-    /* Multi-line ellipsis */
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -205,7 +195,7 @@
     padding-top: 0.5rem;
     border-top: 1px solid #f3f4f6;
     padding: 10px 18px;
-    background: var(--panel); /* Move menu to the right */
+    background: var(--panel);
 }
 
 .flashcard-item .flashcard-inner {
@@ -234,7 +224,7 @@
     transition: all 0.2s ease-in-out;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Center content vertically */
+    justify-content: center;
     text-align: center;
 }
 
@@ -242,12 +232,11 @@
     transform: rotateY(180deg);
     font-size: 0.8rem;
     background: #f8f9fa;
-    overflow-y: auto; /* Allow answer to scroll if it's too long */
+    overflow-y: auto;
     justify-content: flex-start;
     text-align: left;
 }
 
-/* --- Item Menu Styles --- */
 .item-menu-btn {
     position: absolute;
     top: 8px;
@@ -308,10 +297,9 @@
     color: #ef4444;
 }
 
-/* --- Bulk Action Bar --- */
 .bulk-action-bar {
     position: fixed;
-    bottom: -100px; /* Start hidden */
+    bottom: -100px;
     left: 50%;
     transform: translateX(-50%);
     width: auto;
@@ -330,7 +318,7 @@
 }
 
 .bulk-action-bar.visible {
-    bottom: 20px; /* Slide in */
+    bottom: 20px;
 }
 
 .bulk-action-bar .selection-count {
@@ -343,12 +331,9 @@
     gap: 10px;
 }
 
-/* --- Learn Mode Selection Modal --- */
 #select-learn-folders-tree ul { list-style: none; padding-left: 20px; }
 #select-learn-folders-tree > ul { padding-left: 0; }
 #select-learn-folders-tree label { display: flex; align-items: center; gap: 8px; padding: 4px; cursor: pointer; }
-
-/* --- LEARN MODE MODAL (Refinements) --- */
 
 .modal-overlay {
     position: fixed;
@@ -450,11 +435,11 @@
 
 #move-folder-tree ul.nested {
     padding-left: 20px;
-    display: none; /* Hidden by default */
+    display: none;
 }
 
 #move-folder-tree ul.nested.open {
-    display: block; /* Shown when toggled */
+    display: block;
 }
 
 .move-folder-item {
@@ -479,7 +464,6 @@
     transform: rotate(90deg);
 }
 
-/* Creator Modal Styles */
 .creator-modal-content {
     padding: 0;
 }
@@ -520,9 +504,8 @@
     display: none;
 }
 
-/* Emoji Picker Styles */
 .emoji-picker-content {
-    max-width: 320px; /* Slightly wider for a better grid */
+    max-width: 320px;
     padding: 16px;
 }
 
@@ -536,15 +519,15 @@
 
 #emoji-grid {
     display: grid;
-    grid-template-columns: repeat(8, 1fr); /* More columns for a denser look */
+    grid-template-columns: repeat(8, 1fr);
     gap: 4px;
-    max-height: 250px; /* Set a max height to enable scrolling */
-    overflow-y: auto; /* Add a scrollbar when content overflows */
-    padding-right: 8px; /* Space for the scrollbar */
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 8px;
 }
 
 .emoji-category-header {
-    grid-column: 1 / -1; /* Make header span all columns */
+    grid-column: 1 / -1;
     font-size: 0.8rem;
     font-weight: 600;
     color: var(--muted);
@@ -557,17 +540,17 @@
 }
 
 .emoji-btn {
-    background: transparent; /* Cleaner, no background */
+    background: transparent;
     border: none;
     border-radius: 8px;
     padding: 4px;
-    font-size: 1.5rem; /* Smaller emoji */
+    font-size: 1.5rem;
     cursor: pointer;
     transition: background-color 0.2s;
 }
 
 .emoji-btn:hover {
-    background-color: #e9ecef; /* Subtle hover effect */
+    background-color: #e9ecef;
 }
 
 #move-folder-tree a.active {
