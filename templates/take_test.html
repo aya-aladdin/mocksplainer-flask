@@ -3,43 +3,23 @@
 {% block title %}Test: {{ test.topic }}{% endblock %}
 
 {% block content %}
-<div class="container" style="padding: 0;">
-    <div class="test-layout-container">
-        <aside class="test-sidebar">
-            <h3>Questions</h3>
-            <div class="test-history-list">
-                <ul>
-                    {% for q in test.questions|sort(attribute='question_number') %}
-                    <li>
-                        <a href="#question-{{ q.id }}">
-                            <span class="test-topic">Question {{ q.question_number }}</span>
-                            <span class="test-date">[{{ q.marks }}]</span>
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </aside>
-        <main class="test-main">
-            <div class="dashboard-header" style="margin-bottom: 1rem;">
+<div class="container narrow">
+    <div class="dashboard-header" style="margin-bottom: 1rem;">
                 <h1>Test: {{ test.topic }}</h1>
                 <p class="muted">Generated on {{ test.timestamp.strftime('%d %B %Y') }}</p>
             </div>
-            <div class="test-questions-container">
+            <div class="test-paper">
                 {% for q in test.questions|sort(attribute='question_number') %}
-                <div class="card test-question-card" id="question-{{ q.id }}">
-                    <div class="pad">
+                <div class="question-block" id="question-{{ q.id }}" data-question-text="{{ q.question_text }}">
+                    <div class="question-content">
                         <div class="question-header">
                             <h4>Question {{ q.question_number }}</h4>
                             <span class="marks-label">[{{ q.marks }} marks]</span>
                         </div>
                         <div class="question-text">{{ q.question_text | markdown }}</div>
-                        <div class="answer-area">
-                            <textarea class="form-control" rows="5" placeholder="Type your answer here..." data-question-id="{{ q.id }}"></textarea>
-                        </div>
-                        <div class="question-actions">
-                            <button class="btn btn-secondary btn-sm">Ask AI Helper</button>
-                        </div>
+                    </div>
+                    <div class="answer-content">
+                        <textarea class="form-control" rows="8" placeholder="Your answer..." data-question-id="{{ q.id }}"></textarea>
                     </div>
                 </div>
                 {% endfor %}
@@ -47,9 +27,29 @@
             <div class="test-submission-area">
                 <button class="btn btn-primary">Submit & View Mark Scheme</button>
             </div>
-        </main>
+        </div>
+</div>
+
+<!-- Pop-up button for AI Helper -->
+<button id="ask-ai-popup" class="btn btn-secondary btn-sm" style="display: none; position: absolute;">Ask AI for help</button>
+
+<!-- AI Helper Sidebar -->
+<div id="ai-helper-sidebar" class="ai-helper-sidebar">
+    <div class="ai-helper-header">
+        <h3>AI Helper</h3>
+        <button id="close-ai-helper" class="btn btn-ghost btn-sm">&times;</button>
+    </div>
+    <div class="ai-helper-chat-container">
+        <div id="ai-helper-messages">
+            <!-- Chat messages will be appended here -->
+        </div>
+        <form id="ai-helper-form">
+            <input type="text" id="ai-helper-input" placeholder="Ask a follow-up question..." autocomplete="off">
+            <button type="submit" id="ai-helper-send-btn" title="Send">➤</button>
+        </form>
     </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -63,6 +63,120 @@ document.addEventListener('DOMContentLoaded', function () {
             ]
         });
     });
+
+    const askAiPopup = document.getElementById('ask-ai-popup');
+    const aiHelperSidebar = document.getElementById('ai-helper-sidebar');
+    const closeAiHelperBtn = document.getElementById('close-ai-helper');
+    const aiHelperForm = document.getElementById('ai-helper-form');
+    const aiHelperInput = document.getElementById('ai-helper-input');
+    const aiHelperMessages = document.getElementById('ai-helper-messages');
+    let currentQuestionContext = '';
+    let conversationHistory = [];
+
+    document.addEventListener('selectionchange', () => {
+        const selection = window.getSelection();
+        if (selection.toString().trim() !== '' && selection.anchorNode.parentElement.closest('.question-text')) {
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            askAiPopup.style.top = `${window.scrollY + rect.bottom + 5}px`;
+            askAiPopup.style.left = `${window.scrollX + rect.left}px`;
+            askAiPopup.style.display = 'inline-flex';
+        } else {
+            askAiPopup.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('click', () => {
+        if (window.getSelection().toString().trim() === '') {
+            askAiPopup.style.display = 'none';
+        }
+    });
+
+    askAiPopup.addEventListener('click', () => {
+        const selection = window.getSelection();
+        const questionBlock = selection.anchorNode.parentElement.closest('.question-block');
+        if (questionBlock) {
+            currentQuestionContext = questionBlock.dataset.questionText;
+            const selectedText = selection.toString();
+            
+            aiHelperSidebar.classList.add('open');
+            aiHelperMessages.innerHTML = '';
+            conversationHistory = [];
+
+            const initialPrompt = `The user is asking for help with the following question: "${currentQuestionContext}". They have highlighted this part: "${selectedText}". Please explain the highlighted part in the context of the question.`;
+            
+            sendMessageToAI(initialPrompt, true);
+        }
+        askAiPopup.style.display = 'none';
+    });
+
+    closeAiHelperBtn.addEventListener('click', () => {
+        aiHelperSidebar.classList.remove('open');
+    });
+
+    aiHelperForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const userMessage = aiHelperInput.value.trim();
+        if (userMessage) {
+            appendHelperMessage('user', userMessage);
+            sendMessageToAI(userMessage);
+            aiHelperInput.value = '';
+        }
+    });
+
+    async function sendMessageToAI(message, isInitial = false) {
+        if (isInitial) {
+            conversationHistory.push({ role: 'user', content: message });
+        } else {
+            conversationHistory.push({ role: 'user', content: message });
+        }
+
+        try {
+            const response = await fetch("{{ url_for('chat') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: conversationHistory })
+            });
+            if (!response.ok) throw new Error('AI response failed.');
+            const data = await response.json();
+            appendHelperMessage('bot', data.reply);
+            conversationHistory.push({ role: 'assistant', content: data.reply });
+        } catch (error) {
+            console.error('AI Helper Error:', error);
+            appendHelperMessage('bot', 'Sorry, I encountered an error. Please try again.');
+        }
+    }
+
+    function appendHelperMessage(sender, text) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message');
+        
+        if (sender === 'bot') {
+            const avatar = '<div class="bot-avatar">✨</div>';
+            messageElement.innerHTML = avatar + '<div class="message-content">' + marked.parse(text) + '</div>'; 
+        } else {
+            const avatar = '<div class="user-avatar">{{ current_user.username[0] | upper }}</div>';
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.textContent = text;
+            messageElement.innerHTML = avatar;
+            messageElement.appendChild(messageContent);
+        }
+
+        messageElement.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+        aiHelperMessages.appendChild(messageElement);
+
+        if (sender === 'bot') {
+            renderMathInElement(messageElement, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        }
+
+        aiHelperMessages.scrollTop = aiHelperMessages.scrollHeight;
+    }
 });
 </script>
 {% endblock %}

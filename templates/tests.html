@@ -3,27 +3,19 @@
 {% block title %}Mock Test Generator{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container narrow">
     <div class="dashboard-header">
         <h1>Mock Test Generator</h1>
-        <p class="muted">Create IGCSE-style exams on any topic using AI and track your performance.</p>
+        <p class="muted">Create IGCSE-style exams on any topic using AI.</p>
     </div>
 
-    <div class="card leaderboard-card">
+    <div class="card" style="margin-bottom: 2rem;">
         <div class="pad">
             <h3 class="card-section-title">Create a New Test</h3>
             <form id="test-generator-form">
                 <div class="form-group">
-                    <label for="test-topic">Topic</label>
+                    <label for="test-topic">What topic do you want to be tested on?</label>
                     <input type="text" id="test-topic" class="form-control" placeholder="e.g., Photosynthesis, The Cold War" required>
-                </div>
-                <div class="form-group">
-                    <label for="num-questions">Number of Questions</label>
-                    <select id="num-questions" class="form-control" style="width: 120px;">
-                        <option value="5">5</option>
-                        <option value="10" selected>10</option>
-                        <option value="15">15</option>
-                    </select>
                 </div>
                 <button type="submit" class="btn btn-primary">Generate Test</button>
                 <div id="test-loading-spinner" style="display: none; margin-top: 1rem;">
@@ -33,16 +25,16 @@
         </div>
     </div>
 
-    <div class="card leaderboard-card">
+    <div class="card">
         <div class="pad">
             <h3 class="card-section-title">My Tests</h3>
             {% if tests %}
             <ul class="activity-list">
                 {% for test in tests %}
                 <li>
-                    <a href="{{ url_for('take_test', test_id=test.id) }}" class="activity-link" style="justify-content: space-between;">
-                        <span><strong>{{ test.topic }}</strong></span>
-                        <span class="muted">{{ test.timestamp.strftime('%d %b %Y') }}</span>
+                    <a href="{{ url_for('take_test', test_id=test.id) }}" class="activity-link" style="justify-content: space-between; font-size: 1rem;">
+                        <span style="font-weight: 500;">{{ test.topic }}</span>
+                        <span class="muted" style="font-size: 0.9rem;">{{ test.timestamp.strftime('%d %b %Y') }}</span>
                     </a>
                 </li>
                 {% endfor %}
