@@ -105,26 +105,29 @@
         </div>
     </div>
 
-    <div class="features-section-styled">
-        <div id="features" class="container wide-container">
-            <h2 class="section-title">Our Features</h2>
-            <div class="grid features-grid-padded">
-                <div class="card">
-                    <div class="pad">
+    <div class="features-reimagined">
+        <div class="container">
+            <h2 class="section-title-large">Our Features</h2>
+            <div class="features-grid">
+                <div class="feature-box feature-box-tutor">
+                    <div class="feature-box-content">
                         <h3>AI Chatbot Tutor</h3>
-                        <p class="muted">Ask questions and get clear explanations on any topic.</p>
+                        <p>Ask questions and get clear explanations on any topic.</p>
+                        <a href="{{ url_for('chatbot') }}" class="feature-link">Learn more &rarr;</a>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="pad">
+                <div class="feature-box feature-box-flashcards">
+                    <div class="feature-box-content">
                         <h3>AI Flashcards System</h3>
-                        <p class="muted">Generate flashcards for quick revision of key concepts.</p>
+                        <p>Generate flashcards for quick revision of key concepts.</p>
+                        <a href="{{ url_for('flashcards') }}" class="feature-link">Learn more &rarr;</a>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="pad">
+                <div class="feature-box feature-box-mocks">
+                    <div class="feature-box-content">
                         <h3>AI Mock Test Generator</h3>
-                        <p class="muted">Create exam-style tests on any topic, complete with detailed mark schemes.</p>
+                        <p>Create exam-style tests on any topic, complete with detailed mark schemes.</p>
+                        <a href="{{ url_for('tests') }}" class="feature-link">Learn more &rarr;</a>
                     </div>
                 </div>
             </div>

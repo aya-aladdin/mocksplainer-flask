@@ -500,10 +500,112 @@ margin-top: 1rem;
         }
 
 
-.features-section-styled {
-    background-color: #e9ecef;
+.features-reimagined {
     padding: 3rem 0;
     margin-top: 4rem;
+    background-color: var(--panel);
+}
+
+.section-title-large {
+    font-size: 3rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--border);
+    min-height: 400px;
+}
+
+.feature-box {
+    position: relative;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+    border-left: 1px solid var(--border);
+}
+
+.feature-box:first-child {
+    border-left: none;
+}
+
+.feature-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-size: cover;
+    background-position: center;
+    filter: blur(20px) saturate(150%) brightness(1.1);
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+    transform: scale(1.1);
+}
+
+.feature-box-tutor::before {
+    background-image: url('/static/img/v3.png');
+}
+
+.feature-box-flashcards::before {
+    background-image: url('/static/img/v1.png');
+}
+
+.feature-box-mocks::before {
+    background-image: url('/static/img/v2dark.png');
+}
+
+.feature-box:hover::before {
+    opacity: 1;
+}
+
+.feature-box-content {
+    position: relative;
+    height: 100%;
+    color: var(--ink);
+    transition: color 0.4s ease-in-out;
+}
+
+.feature-box h3 {
+    position: absolute;
+    top: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.feature-box p {
+    position: absolute;
+    bottom: 0;
+    width: calc(100% - 4rem); /* Match padding */
+    color: inherit; /* Inherit color from parent for smooth transition */
+    transition: transform 0.4s ease-in-out, color 0.4s ease-in-out;
+}
+
+.feature-link {
+    display: block;
+    position: absolute;
+    bottom: 0;
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+    font-weight: 600;
+    color: #60a5fa; /* Lighter blue */
+}
+
+.feature-box:hover .feature-box-content {
+    color: #fff;
+}
+
+.feature-box:hover p {
+    transform: translateY(-30px);
+}
+
+.feature-box:hover .feature-link {
+    opacity: 1;
 }
 
 .chat-layout-container {
