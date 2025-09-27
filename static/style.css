@@ -20,7 +20,7 @@ box-sizing: border-box;
 }
 
 html, body {
-background: var(--bg);
+background: #1a202c;
 margin: 0;
 padding: 0;
 }

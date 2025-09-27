@@ -1,8 +1,13 @@
 {
     "builds": [
         {
-            "src": "app.py",
-            "use": "@vercel/python"
+            "src": "package.json",
+            "use": "@vercel/static-build"
+        },
+        {
+            "src": "requirements.txt",
+            "use": "@vercel/python",
+            "config": { "runtime": "python3.9" }
         }
     ],
     "routes": [
