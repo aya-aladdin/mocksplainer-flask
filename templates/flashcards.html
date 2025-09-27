@@ -285,15 +285,14 @@ document.addEventListener('DOMContentLoaded', function() {
         folders.forEach(folder => {
             const li = document.createElement('li');
             const label = document.createElement('label');
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.value = folder.id;
-            checkbox.id = `learn-check-${folder.id}`;
-            
-            label.setAttribute('for', checkbox.id);
-            label.innerHTML = `<span class="folder-icon">${folder.icon}</span> ${folder.name}`;
-            
-            li.appendChild(checkbox);
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = 'learn-folder-selection'; // Group radio buttons
+            radio.value = folder.id;
+            radio.id = `learn-radio-${folder.id}`;
+
+            label.appendChild(radio);
+            label.insertAdjacentHTML('beforeend', ` <span class="folder-icon">${folder.icon}</span> ${folder.name}`);
             li.appendChild(label);
 
             if (folder.subfolders && folder.subfolders.length > 0) {
@@ -758,13 +757,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     startLearnSessionBtn.addEventListener('click', async () => {
-        const selectedCheckboxes = document.querySelectorAll('#select-learn-folders-tree input[type="checkbox"]:checked');
-        const folderIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+        const selectedRadio = document.querySelector('#select-learn-folders-tree input[type="radio"]:checked');
 
-        if (folderIds.length === 0) {
-            alert('Please select at least one folder to learn.');
+        if (!selectedRadio) {
+            alert('Please select a folder to learn.');
             return;
         }
+        const folderIds = [selectedRadio.value];
 
         try {
             const response = await fetch('{{ url_for("get_learn_session_flashcards") }}', {
