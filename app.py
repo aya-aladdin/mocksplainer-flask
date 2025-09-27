@@ -1,5 +1,6 @@
 import os
 import json
+import re
 from datetime import datetime
 import urllib.request
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
@@ -181,22 +182,34 @@ def create_folder():
 @login_required
 def generate_test_ai():
     data = request.json
+    exam_board = data.get('exam_board', 'IGCSE').strip()
+    subject = data.get('subject', 'General').strip()
     topic = data.get('topic', '').strip()
-    num_questions = data.get('num_questions', 5)
+    num_questions = data.get('num_questions', 10)
+    total_marks = data.get('total_marks', 25)
 
     if not topic:
         return jsonify({'error': 'Please provide a topic for the test.'}), 400
 
     try:
         system_prompt = r"""
-            "You are an expert IGCSE exam creator. Your task is to generate a mock test based on a user-provided topic. "
-            "The test should consist of a specified number of questions. Each question must have a question number, the question text (in Markdown), the number of marks, and a detailed answer for the mark scheme. "
+            "You are an expert exam paper creator for various curricula (IGCSE, A-Level, IB, GCSE). "
+            "Your task is to generate a mock test based on user-provided specifications: exam board, subject, topic, number of questions, and approximate total marks. "
+            "The generated questions should be appropriate for the specified curriculum level. "
+            "Each question must have a 'question_number', 'question_text' (in Markdown), 'marks', and a detailed 'answer_text' for the mark scheme. The sum of marks should be close to the requested total. "
             "Respond ONLY with a valid JSON object. This JSON object must contain a single key 'questions', which is an array of question objects. "
             "Crucially, ensure all double quotes within any string values are properly escaped with a backslash (e.g., \"). Also, ensure any literal backslashes in the text are escaped (e.g., a single backslash \ should be written as \\). "
             "Example: {\"questions\": [{\"question_number\": 1, \"question_text\": \"Explain the term 'osmosis'.\", \"marks\": 2, \"answer_text\": \"- Osmosis is the net movement of water molecules...\\n- from a region of higher water potential to a region of lower water potential...\"}]}"
         """
         
-        user_prompt = f"Generate an IGCSE-level mock test on the topic '{topic}' with {num_questions} questions."
+        user_prompt = (
+            f"Generate a mock test with the following specifications:\n"
+            f"- Exam Board: {exam_board}\n"
+            f"- Subject: {subject}\n"
+            f"- Topic: {topic}\n"
+            f"- Number of Questions: {num_questions}\n"
+            f"- Approximate Total Marks: {total_marks}"
+        )
 
         api_messages = [
             {"role": "system", "content": system_prompt},
@@ -215,11 +228,54 @@ def generate_test_ai():
                 ai_response_data = json.loads(response_text)
                 content = ai_response_data['choices'][0]['message']['content']
                 
+                # Robustly find and extract the JSON object from the AI's response
                 json_start = content.find('{')
                 json_end = content.rfind('}') + 1
-                test_json_str = content[json_start:json_end]
                 
-                test_data = json.loads(test_json_str)
+                if json_start == -1 or json_end == 0:
+                    raise ValueError(f"AI response did not contain a valid JSON object. Response: {content}")
+
+                test_json_str = content[json_start:json_end]
+
+                try:
+                    # First attempt to parse the extracted JSON string
+                    test_data = json.loads(test_json_str)
+                except json.JSONDecodeError as e:
+                    # If parsing fails, ask the AI to fix its own output
+                    print(f"Initial JSON parse failed: {e}. Attempting self-correction.")
+                    
+                    correction_prompt = (
+                        "The following text is not valid JSON. Please fix it and return only the corrected, valid JSON object. "
+                        "Do not add any commentary or markdown. The text to fix is:\n\n"
+                        f"{test_json_str}"
+                    )
+                    
+                    correction_messages = [{"role": "user", "content": correction_prompt}]
+                    
+                    correction_req = urllib.request.Request(
+                        HACKCLUB_API_URL,
+                        data=json.dumps({"model": "gpt-4o-mini", "messages": correction_messages, "max_tokens": 2000}).encode('utf-8'),
+                        headers={'Content-Type': 'application/json'}
+                    )
+
+                    with urllib.request.urlopen(correction_req) as correction_response:
+                        if correction_response.status == 200:
+                            correction_response_text = correction_response.read().decode('utf-8')
+                            correction_ai_data = json.loads(correction_response_text)
+                            corrected_content = correction_ai_data['choices'][0]['message']['content']
+                            
+                            # The AI might still wrap the corrected JSON in markdown, so we extract it again.
+                            json_start_corr = corrected_content.find('{')
+                            json_end_corr = corrected_content.rfind('}') + 1
+                            
+                            if json_start_corr == -1 or json_end_corr == 0:
+                                raise ValueError(f"AI self-correction did not return a JSON object. Response: {corrected_content}")
+
+                            final_json_str = corrected_content[json_start_corr:json_end_corr]
+                            test_data = json.loads(final_json_str)
+                        else:
+                            raise ValueError("AI self-correction failed.")
+
                 questions_data = test_data.get('questions', [])
 
                 new_test = MockTest(user_id=current_user.id, topic=topic)

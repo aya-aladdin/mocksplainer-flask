@@ -1,28 +1,4 @@
-/* Generic App Layout */
-.app-sidebar {
-    width: 300px;
-    flex-shrink: 0;
-}
-
-.sidebar-section {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.sidebar-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--border);
-}
-
-
-.app-main {
-    flex-grow: 1;
-    min-width: 0;
-}
+@import url('flashcards.css');
 
 .test-list-item {
     position: relative;
@@ -70,4 +46,16 @@
 
 .test-list-item .item-menu-dropdown.visible {
     display: block;
+}
+
+@media (max-width: 768px) {
+    .flashcards-main-header .actions {
+        display: flex;
+    }
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
 }

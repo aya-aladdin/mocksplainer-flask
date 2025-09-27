@@ -4,28 +4,24 @@
 {% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='tests.css') }}">{% endblock %}
 
 {% block content %}
-<div class="app-layout">
-    <aside class="app-sidebar">
-        <div class="sidebar-section">
-            <h3 class="sidebar-title">Create a New Test</h3>
-            <div class="pad">
-                <form id="test-generator-form">
-                    <div class="form-group">
-                        <label for="test-topic">Topic</label>
-                        <input type="text" id="test-topic" class="form-control" placeholder="e.g., Photosynthesis" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Generate Test</button>
-                    <div id="test-loading-spinner" style="display: none; margin-top: 1rem; text-align: center;">
-                        <p class="muted">Generating...</p>
-                    </div>
-                </form>
-            </div>
+<div class="flashcards-layout">
+    <aside class="flashcards-sidebar">
+        <div class="sidebar-header">
+            <h3>Create a New Test</h3>
+        </div>
+        <div id="desktop-test-generator">
+            <!-- Form will be injected here by JS for desktop -->
         </div>
     </aside>
-    <main class="app-main">
-        <div class="dashboard-header" style="padding: 10px 0;">
-            <h1>My Tests</h1>
-            <p class="muted">A history of all the mock tests you've generated.</p>
+    <main class="flashcards-main">
+        <div class="flashcards-main-header">
+            <div class="header-title-container">
+                <h1>My Tests</h1>
+                <p class="muted" style="margin-top: 0.25rem;">A history of all the mock tests you've generated.</p>
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" id="generate-test-btn-main">Generate Test</button>
+            </div>
         </div>
         <div class="card">
             <div class="pad">
@@ -56,72 +52,161 @@
 </div>
 {% endblock %}
 
+{% block full_width_content %}
+    {{ super() }}
+    <div id="generate-test-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" id="close-generate-modal">&times;</button>
+            <h3>Create a New Test</h3>
+            <div id="modal-test-generator">
+                <!-- Form will be injected here by JS for modals -->
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
 {% block scripts %}
 <script>
-document.getElementById('test-generator-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const topic = document.getElementById('test-topic').value.trim();
-    const num_questions = 10; // Hardcoding for a cleaner UI, can be brought back if needed
-    const spinner = document.getElementById('test-loading-spinner');
-    spinner.style.display = 'block';
+document.addEventListener('DOMContentLoaded', function() {
+    const testGeneratorFormHTML = `
+        <form id="test-generator-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="test-exam-board">Exam Board</label>
+                    <select id="test-exam-board" class="form-control" required>
+                        <option value="IGCSE">IGCSE</option>
+                        <option value="A-Level">A-Level</option>
+                        <option value="IB">IB</option>
+                        <option value="GCSE">GCSE</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="test-subject">Subject</label>
+                    <select id="test-subject" class="form-control" required>
+                        <option value="Biology">Biology</option>
+                        <option value="Chemistry">Chemistry</option>
+                        <option value="Physics">Physics</option>
+                        <option value="Maths">Maths</option>
+                        <option value="Geography">Geography</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="test-topic">Topic</label>
+                <input type="text" id="test-topic" class="form-control" placeholder="e.g., Photosynthesis, The Krebs Cycle" required>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="test-num-questions">Questions</label>
+                    <input type="number" id="test-num-questions" class="form-control" value="10" min="1" max="20" required>
+                </div>
+                <div class="form-group">
+                    <label for="test-total-marks">~ Total Marks</label>
+                    <input type="number" id="test-total-marks" class="form-control" value="25" min="5" step="5" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Generate Test</button>
+            <div id="test-loading-spinner" style="display: none; margin-top: 1rem; text-align: center;">
+                <p class="muted">Generating...</p>
+            </div>
+        </form>
+    `;
 
-    const response = await fetch('{{ url_for("generate_test_ai") }}', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, num_questions: parseInt(num_questions) })
+    // Inject form into both desktop and modal containers
+    document.getElementById('desktop-test-generator').innerHTML = testGeneratorFormHTML;
+    document.getElementById('modal-test-generator').innerHTML = testGeneratorFormHTML;
+
+    const modal = document.getElementById('generate-test-modal');
+    const mainButton = document.getElementById('generate-test-btn-main');
+    const closeModalButton = document.getElementById('close-generate-modal');
+
+    mainButton.addEventListener('click', () => {
+        modal.classList.add('visible');
     });
 
-    spinner.style.display = 'none';
-    const data = await response.json();
+    closeModalButton.addEventListener('click', () => {
+        modal.classList.remove('visible');
+    });
 
-    if (response.ok) {
-        window.location.href = `/tests/${data.test_id}`;
-    } else {
-        alert('Error: ' + (data.error || 'Could not generate test.'));
-    }
-});
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('visible');
+        }
+    });
 
-document.querySelector('.app-main').addEventListener('click', function(e) {
-    const target = e.target;
+    async function handleTestGeneration(event) {
+        event.preventDefault();
+        const form = event.target;
+        const examBoard = form.querySelector('#test-exam-board').value;
+        const subject = form.querySelector('#test-subject').value;
+        const topic = form.querySelector('#test-topic').value.trim();
+        const num_questions = form.querySelector('#test-num-questions').value;
+        const total_marks = form.querySelector('#test-total-marks').value;
+        const spinner = form.querySelector('#test-loading-spinner');
+        spinner.style.display = 'block';
 
-    if (target.classList.contains('item-menu-btn')) {
-        e.stopPropagation();
-        const dropdown = target.nextElementSibling;
-        
-        // Close other menus
-        document.querySelectorAll('.item-menu-dropdown.visible').forEach(d => {
-            if (d !== dropdown) d.classList.remove('visible');
+        const response = await fetch('{{ url_for("generate_test_ai") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                exam_board: examBoard, subject: subject, topic: topic, 
+                num_questions: parseInt(num_questions), total_marks: parseInt(total_marks) 
+            })
         });
 
-        dropdown.classList.toggle('visible');
-    } else if (target.classList.contains('delete-test-btn')) {
-        e.preventDefault();
-        const listItem = target.closest('li');
-        const menuBtn = listItem.querySelector('.item-menu-btn');
-        const testId = menuBtn.dataset.testId;
+        spinner.style.display = 'none';
+        const data = await response.json();
 
-        if (confirm('Are you sure you want to delete this test? This action cannot be undone.')) {
-            fetch(`/delete_test/${testId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.message) {
-                    listItem.remove();
-                } else {
-                    alert('Error: ' + (data.error || 'Could not delete test.'));
-                }
+        if (response.ok) {
+            window.location.href = `/tests/${data.test_id}`;
+        } else {
+            alert('Error: ' + (data.error || 'Could not generate test.'));
+        }
+    }
+
+    // Attach event listener to both forms
+    document.querySelectorAll('#test-generator-form').forEach(form => {
+        form.addEventListener('submit', handleTestGeneration);
+    });
+
+    document.querySelector('.flashcards-main').addEventListener('click', function(e) {
+        const target = e.target;
+
+        if (target.classList.contains('item-menu-btn')) {
+            e.stopPropagation();
+            const dropdown = target.nextElementSibling;
+            
+            document.querySelectorAll('.item-menu-dropdown.visible').forEach(d => {
+                if (d !== dropdown) d.classList.remove('visible');
+            });
+
+            dropdown.classList.toggle('visible');
+        } else if (target.classList.contains('delete-test-btn')) {
+            e.preventDefault();
+            const listItem = target.closest('li');
+            const menuBtn = listItem.querySelector('.item-menu-btn');
+            const testId = menuBtn.dataset.testId;
+
+            if (confirm('Are you sure you want to delete this test? This action cannot be undone.')) {
+                fetch(`/delete_test/${testId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        listItem.remove();
+                    } else {
+                        alert('Error: ' + (data.error || 'Could not delete test.'));
+                    }
+                });
+            }
+        } else {
+            document.querySelectorAll('.item-menu-dropdown.visible').forEach(d => {
+                d.classList.remove('visible');
             });
         }
-    } else {
-        // Close all menus if clicking elsewhere
-        document.querySelectorAll('.item-menu-dropdown.visible').forEach(d => {
-            d.classList.remove('visible');
-        });
-    }
+    });
 });
 </script>
 {% endblock %}
