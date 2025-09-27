@@ -31,12 +31,17 @@
             <h1 class="headline">Exam-specific revision,<br>made by trusted examiners</h1>
             <p class="muted">Real expertise. Real results. On average, our resources help students go up 2 grades.</p>
             <div class="actions" id="get-started">
-                <a href="/register" class="btn btn-primary">Get Started - for free</a>
+                <div class="email-signup-group">
+                    <input type="email" class="form-control" placeholder="Enter your email">
+                    <a href="/register" class="btn btn-primary">Get Started</a>
+                </div>
+                <a href="{{ url_for('chatbot') }}" class="btn btn-ghost">Try our AI</a>
             </div>
         </div>
     </div>
 
-    <div class="container">
+    <div class="section-bg-darker">
+        <div class="container feature-showcase-container">
             <nav class="feature-showcase-nav">
                 <button class="feature-tab active" data-feature="flashcards">AI Flashcards</button>
                 <button class="feature-tab" data-feature="ai-tutor">AI Tutor</button>
@@ -54,9 +59,7 @@
                     <p>Generate complete, exam-style mock tests on any topic, complete with detailed IGCSE mark schemes.</p>
                 </div>
             </div>
-    </div>
-
-    <div class="section-bg-darker">
+        </div>
         <div class="scroller">
             <ul class="tag-list scroller__inner">
                 <li>Cambridge</li>

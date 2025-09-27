@@ -329,6 +329,36 @@ color: var(--muted);
 margin-top: 1rem;
 }
 
+.email-signup-group {
+    display: flex;
+    position: relative;
+    align-items: center;
+    border-radius: 12px; /* More rectangular */
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    min-width: 450px;
+}
+
+.email-signup-group .form-control {
+    background: transparent;
+    border-color: transparent;
+    color: #333;
+    padding-top: 1rem; /* Thicker */
+    padding-bottom: 1rem; /* Thicker */
+    padding-right: 140px; /* Make space for the button */
+}
+
+.email-signup-group .btn {
+    position: absolute;
+    right: 8px;
+    box-shadow: none;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-radius: 8px; /* Slightly rounded corners for the button */
+}
+
 
 .feature-showcase-nav {
     display: flex;
@@ -396,6 +426,11 @@ margin-top: 1rem;
 
 .feature-panel.exiting {
     transform: translateX(-30px);
+}
+
+.feature-showcase-container {
+    padding-top: 0; /* Remove top padding as it's handled by parent */
+    padding-bottom: 3rem; /* Add space below it */
 }
 
 .section-bg-darker {
