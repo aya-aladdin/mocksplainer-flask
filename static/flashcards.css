@@ -506,7 +506,7 @@ padding: 0;
 }
 
 /* --- Mobile Specific --- */
-.fab, .mobile-view-switcher {
+.fab, .mobile-view-switcher, .mobile-bottom-actions {
     display: none;
 }
 
@@ -515,16 +515,10 @@ padding: 0;
         padding-bottom: 100px; /* Space for sticky bottom bar */
     }
 
-    .flashcards-sidebar {
-        display: none; /* Hide desktop sidebar */
-    }
-
-    #folder-tree {
-        display: none; /* Hide folder tree by default on mobile */
-        background: var(--panel);
-        padding: 1rem;
-        border-radius: 12px;
-        margin-top: 1rem;
+    .flashcards-sidebar, .flashcards-main {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
     }
 
     .flashcards-main-header .actions {

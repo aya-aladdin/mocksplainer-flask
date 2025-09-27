@@ -10,6 +10,8 @@
             <h3>My Collection</h3>
             <button class="btn btn-ghost btn-sm" id="new-folder-btn">+ New Folder</button>
         </div>
+        <div id="folder-tree">
+        </div>
     </aside>
 
     <main class="flashcards-main">
@@ -31,9 +33,6 @@
         </div>
 
         <nav id="breadcrumbs" aria-label="breadcrumb"></nav>
-
-        <div id="folder-tree">
-        </div>
 
         <div id="items-container" class="items-grid">
         </div>
@@ -1010,11 +1009,11 @@ document.addEventListener('DOMContentLoaded', function() {
             viewSwitcher.querySelectorAll('.view-switch-btn').forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
 
-            const itemsView = document.getElementById('items-container');
-            const foldersView = document.getElementById('folder-tree');
+            const mainContent = document.querySelector('.flashcards-main');
+            const sidebar = document.querySelector('.flashcards-sidebar');
 
-            itemsView.style.display = view === 'items' ? 'grid' : 'none';
-            foldersView.style.display = view === 'folders' ? 'block' : 'none';
+            mainContent.style.display = view === 'items' ? 'block' : 'none';
+            sidebar.style.display = view === 'folders' ? 'block' : 'none';
         }
     });
 
