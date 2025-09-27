@@ -1,3 +1,8 @@
+html, body {
+background: var(--bg);
+margin: 0;
+padding: 0;
+}
 .flashcards-layout {
     display: flex;
     min-height: calc(100vh - 60px);
@@ -377,7 +382,7 @@
 }
 
 /* --- Mobile Specific --- */
-.fab, .mobile-bottom-actions, .mobile-view-switcher {
+.fab, .mobile-view-switcher {
     display: none;
 }
 
@@ -446,11 +451,13 @@
     }
 
     .mobile-bottom-actions {
-        display: block;
+        display: flex; /* Changed to flex */
+        justify-content: center; /* Center content horizontally */
+        align-items: center; /* Center content vertically */
         position: fixed;
         bottom: 0;
-        left: 0;
-        right: 0;
+        left: 0; /* Ensure it spans full width */
+        right: 0; /* Ensure it spans full width */
         background: rgba(255, 255, 255, 0.8);
         backdrop-filter: blur(10px);
         padding: 1rem;
@@ -459,6 +466,7 @@
     }
 
     .mobile-bottom-actions .btn {
-        width: 100%;
+        width: auto; /* Allow button to size to its content */
+        max-width: 300px; /* Limit its maximum width */
     }
 }

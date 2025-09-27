@@ -47,80 +47,82 @@
         </main>
     {% endblock %}
 
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-grid">
-                <div>
-                    <h4 class="footer-heading">Home</h4>
-                    <ul>
-                        <li><a href="{{ url_for('index') }}">Home</a></li>
-                        <li><a href="{{ url_for('register') }}">Resources</a></li>
-                    </ul>
+    {% block footer %}
+        <footer class="footer">
+            <div class="footer-container">
+                <div class="footer-grid">
+                    <div>
+                        <h4 class="footer-heading">Home</h4>
+                        <ul>
+                            <li><a href="{{ url_for('index') }}">Home</a></li>
+                            <li><a href="{{ url_for('register') }}">Resources</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="footer-heading">Resources</h4>
+                        <ul>
+                            <li><a href="{{ url_for('register') }}">Learning Hub</a></li>
+                            <li><a href="{{ url_for('register') }}">Teachers</a></li>
+                            <li><a href="{{ url_for('register') }}">Ambassadors</a></li>
+                            <li><a href="{{ url_for('register') }}">Scholarship</a></li>
+                            <li><a href="{{ url_for('register') }}">Join</a></li>
+                            <li><a href="{{ url_for('register') }}">Past Papers</a></li>
+                            <li><a href="{{ url_for('register') }}">Solution Banks</a></li>
+                            <li><a href="{{ url_for('index') }}">Sitemap</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="footer-heading">Members</h4>
+                        <ul>
+                            <li><a href="{{ url_for('login') }}">Log in</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="footer-heading">Company</h4>
+                        <ul>
+                            <li><a href="{{ url_for('index') }}">About us</a></li>
+                            <li><a href="{{ url_for('index') }}">Exam Specificity</a></li>
+                            <li><a href="{{ url_for('index') }}">Content Quality</a></li>
+                            <li><a href="{{ url_for('index') }}">Promotions</a></li>
+                            <li><a href="{{ url_for('index') }}">Jobs</a></li>
+                            <li><a href="{{ url_for('index') }}">Terms</a></li>
+                            <li><a href="{{ url_for('index') }}">Privacy</a></li>
+                            <li><a href="{{ url_for('index') }}">Cookie Policy</a></li>
+                            <li><a href="{{ url_for('index') }}">Help and Support</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="footer-heading">Subjects</h4>
+                        <ul>
+                            <li><a href="{{ url_for('register') }}">Biology</a></li>
+                            <li><a href="{{ url_for('register') }}">Chemistry</a></li>
+                            <li><a href="{{ url_for('register') }}">Physics</a></li>
+                            <li><a href="{{ url_for('register') }}">Maths</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="footer-heading">Follow us</h4>
+                        <ul>
+                            <li><a href="https://tiktok.com" target="_blank" rel="noopener noreferrer">TikTok</a></li>
+                            <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+                            <li><a href="https://facebook.com" target="_blank" rel="noopener noreferrer">Facebook</a></li>
+                            <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer">Twitter</a></li>
+                        </ul>
+                    </div>
                 </div>
 
-                <div>
-                    <h4 class="footer-heading">Resources</h4>
-                    <ul>
-                        <li><a href="{{ url_for('register') }}">Learning Hub</a></li>
-                        <li><a href="{{ url_for('register') }}">Teachers</a></li>
-                        <li><a href="{{ url_for('register') }}">Ambassadors</a></li>
-                        <li><a href="{{ url_for('register') }}">Scholarship</a></li>
-                        <li><a href="{{ url_for('register') }}">Join</a></li>
-                        <li><a href="{{ url_for('register') }}">Past Papers</a></li>
-                        <li><a href="{{ url_for('register') }}">Solution Banks</a></li>
-                        <li><a href="{{ url_for('index') }}">Sitemap</a></li>
-                    </ul>
-                </div>
-
-                <div>
-                    <h4 class="footer-heading">Members</h4>
-                    <ul>
-                        <li><a href="{{ url_for('login') }}">Log in</a></li>
-                    </ul>
-                </div>
-
-                <div>
-                    <h4 class="footer-heading">Company</h4>
-                    <ul>
-                        <li><a href="{{ url_for('index') }}">About us</a></li>
-                        <li><a href="{{ url_for('index') }}">Exam Specificity</a></li>
-                        <li><a href="{{ url_for('index') }}">Content Quality</a></li>
-                        <li><a href="{{ url_for('index') }}">Promotions</a></li>
-                        <li><a href="{{ url_for('index') }}">Jobs</a></li>
-                        <li><a href="{{ url_for('index') }}">Terms</a></li>
-                        <li><a href="{{ url_for('index') }}">Privacy</a></li>
-                        <li><a href="{{ url_for('index') }}">Cookie Policy</a></li>
-                        <li><a href="{{ url_for('index') }}">Help and Support</a></li>
-                    </ul>
-                </div>
-
-                <div>
-                    <h4 class="footer-heading">Subjects</h4>
-                    <ul>
-                        <li><a href="{{ url_for('register') }}">Biology</a></li>
-                        <li><a href="{{ url_for('register') }}">Chemistry</a></li>
-                        <li><a href="{{ url_for('register') }}">Physics</a></li>
-                        <li><a href="{{ url_for('register') }}">Maths</a></li>
-                    </ul>
-                </div>
-
-                <div>
-                    <h4 class="footer-heading">Follow us</h4>
-                    <ul>
-                        <li><a href="https://tiktok.com" target="_blank" rel="noopener noreferrer">TikTok</a></li>
-                        <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a></li>
-                        <li><a href="https://facebook.com" target="_blank" rel="noopener noreferrer">Facebook</a></li>
-                        <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer">Twitter</a></li>
-                    </ul>
+                <div class="footer-bottom">
+                    <p class="text-sm mb-4 md:mb-0">&copy; Copyright 2015-2025 mocksplainer Ltd. All Rights Reserved.</p>
+                    <p class="text-sm">IBO was not involved in the production of, and does not endorse, the resources created by mocksplainer.</p>
                 </div>
             </div>
-
-            <div class="footer-bottom">
-                <p class="text-sm mb-4 md:mb-0">&copy; Copyright 2015-2025 mocksplainer Ltd. All Rights Reserved.</p>
-                <p class="text-sm">IBO was not involved in the production of, and does not endorse, the resources created by mocksplainer.</p>
-            </div>
-        </div>
-    </footer>
+        </footer>
+    {% endblock %}
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
