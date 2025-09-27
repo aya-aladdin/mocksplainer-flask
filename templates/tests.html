@@ -33,10 +33,17 @@
                 <ul class="activity-list">
                     {% for test in tests %}
                     <li>
-                        <a href="{{ url_for('take_test', test_id=test.id) }}" class="activity-link" style="justify-content: space-between; font-size: 1rem;">
-                            <span style="font-weight: 500;">{{ test.topic }}</span>
-                            <span class="muted" style="font-size: 0.9rem;">{{ test.timestamp.strftime('%d %b %Y') }}</span>
-                        </a>
+                        <div class="test-list-item">
+                            <a href="{{ url_for('take_test', test_id=test.id) }}" class="activity-link">
+                                <span style="font-weight: 500;">{{ test.topic }}</span>
+                                <span class="muted" style="font-size: 0.9rem;">{{ test.timestamp.strftime('%d %b %Y') }}</span>
+                            </a>
+                            <div class="item-menu-btn" data-test-id="{{ test.id }}">...</div>
+                            <div class="item-menu-dropdown">
+                                <a href="{{ url_for('take_test', test_id=test.id) }}">Retake</a>
+                                <a href="#" class="delete-test-btn">Delete</a>
+                            </div>
+                        </div>
                     </li>
                     {% endfor %}
                 </ul>
@@ -71,6 +78,49 @@ document.getElementById('test-generator-form').addEventListener('submit', async 
         window.location.href = `/tests/${data.test_id}`;
     } else {
         alert('Error: ' + (data.error || 'Could not generate test.'));
+    }
+});
+
+document.querySelector('.app-main').addEventListener('click', function(e) {
+    const target = e.target;
+
+    if (target.classList.contains('item-menu-btn')) {
+        e.stopPropagation();
+        const dropdown = target.nextElementSibling;
+        
+        // Close other menus
+        document.querySelectorAll('.item-menu-dropdown.visible').forEach(d => {
+            if (d !== dropdown) d.classList.remove('visible');
+        });
+
+        dropdown.classList.toggle('visible');
+    } else if (target.classList.contains('delete-test-btn')) {
+        e.preventDefault();
+        const listItem = target.closest('li');
+        const menuBtn = listItem.querySelector('.item-menu-btn');
+        const testId = menuBtn.dataset.testId;
+
+        if (confirm('Are you sure you want to delete this test? This action cannot be undone.')) {
+            fetch(`/delete_test/${testId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    listItem.remove();
+                } else {
+                    alert('Error: ' + (data.error || 'Could not delete test.'));
+                }
+            });
+        }
+    } else {
+        // Close all menus if clicking elsewhere
+        document.querySelectorAll('.item-menu-dropdown.visible').forEach(d => {
+            d.classList.remove('visible');
+        });
     }
 });
 </script>

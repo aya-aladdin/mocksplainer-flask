@@ -369,6 +369,20 @@ def delete_items_bulk():
         print(f"Bulk Delete Error: {e}")
         return jsonify({'error': 'An error occurred during bulk deletion.'}), 500
 
+@app.route('/delete_test/<int:test_id>', methods=['DELETE'])
+@login_required
+def delete_test(test_id):
+    test = MockTest.query.get_or_404(test_id)
+    if test.user_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    try:
+        db.session.delete(test)
+        db.session.commit()
+        return jsonify({'message': 'Test deleted successfully.'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to delete test.'}), 500
+
 @app.route('/move_items_bulk', methods=['POST'])
 @login_required
 def move_items_bulk():
