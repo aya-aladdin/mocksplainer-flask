@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}Flashcards System{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='flashcards.css') }}">{% endblock %}
 
 {% block content %}
 <div class="flashcards-layout">
@@ -56,6 +57,21 @@
         </div>
     </div>
 </div>
+
+<!-- Move Item Modal (Structure Only) -->
+<div id="move-item-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <h3>Move Item to...</h3>
+        <div id="move-folder-tree">
+            <!-- Simplified folder tree for selection -->
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" id="cancel-move-btn">Cancel</button>
+            <button class="btn btn-primary" id="confirm-move-btn">Move</button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -85,12 +101,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
         folders.forEach(folder => {
             const li = document.createElement('li');
-            li.innerHTML = `<a href="#" data-folder-id="${folder.id}">📁 ${folder.name}</a>`;
-            li.querySelector('a').addEventListener('click', (e) => {
+            const a = document.createElement('a');
+            a.id = `folder-link-${folder.id}`;
+            a.href = '#';
+            a.dataset.folderId = folder.id;
+            a.innerHTML = `<span class="folder-icon">${folder.icon}</span> ${folder.name}`;
+            a.addEventListener('click', (e) => {
                 e.preventDefault();
                 navigateToFolder(folder.id);
             });
-            
+            li.appendChild(a);
+
             if (folder.subfolders && folder.subfolders.length > 0) {
                 renderFolderTree(folder.subfolders, li, level + 1);
             }
@@ -98,15 +119,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         parentElement.appendChild(ul);
     }
-
+    
     function renderItems(items) {
         itemsContainerEl.innerHTML = ''; // Clear current items
         
         // Render subfolders
         (items.folders || []).forEach(folder => {
             const folderEl = document.createElement('div');
-            folderEl.className = 'folder-item';
-            folderEl.innerHTML = `<span>${folder.name}</span>`;
+            folderEl.className = 'item-card folder-item';
+            folderEl.dataset.itemId = folder.id;
+            folderEl.dataset.itemType = 'folder';
+            folderEl.innerHTML = `
+                <div class="item-icon">${folder.icon}</div>
+                <div class="item-name">${folder.name}</div>
+                <div class="item-menu-btn">...</div>
+                <div class="item-menu-dropdown">
+                    <a href="#" class="rename-btn">Rename</a>
+                    <a href="#" class="change-icon-btn">Change Icon</a>
+                    <a href="#" class="move-btn">Move</a>
+                    <a href="#" class="delete-btn">Delete</a>
+                </div>
+            `;
             folderEl.addEventListener('click', () => navigateToFolder(folder.id));
             itemsContainerEl.appendChild(folderEl);
         });
@@ -114,10 +147,20 @@ document.addEventListener('DOMContentLoaded', function() {
         // Render flashcards
         (items.flashcards || []).forEach(flashcard => {
             const flashcardEl = document.createElement('div');
-            flashcardEl.className = 'flashcard-item';
+            flashcardEl.className = 'item-card flashcard-item';
+            flashcardEl.dataset.itemId = flashcard.id;
+            flashcardEl.dataset.itemType = 'flashcard';
             flashcardEl.innerHTML = `
-                <div class="flashcard-item-question">${flashcard.question}</div>
-                <div class="flashcard-item-topic">${flashcard.topic}</div>
+                <div class="item-content">
+                    <div class="item-name">${flashcard.question}</div>
+                    <div class="flashcard-item-topic">${flashcard.topic}</div>
+                </div>
+                <div class="item-menu-btn">...</div>
+                <div class="item-menu-dropdown">
+                    <a href="#" class="rename-btn">Rename</a>
+                    <a href="#" class="move-btn">Move</a>
+                    <a href="#" class="delete-btn">Delete</a>
+                </div>
             `;
             // Could add a click handler to open a detail view
             itemsContainerEl.appendChild(flashcardEl);
@@ -189,6 +232,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         renderBreadcrumbs();
+
+        // Update active class in sidebar
+        document.querySelectorAll('#folder-tree a').forEach(a => a.classList.remove('active'));
+        if (folderId) {
+            const activeLink = document.getElementById(`folder-link-${folderId}`);
+            if (activeLink) activeLink.classList.add('active');
+        }
     }
 
     // --- EVENT HANDLERS ---
@@ -223,6 +273,50 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.error(error);
                 alert('Error creating folder.');
+            }
+        }
+    });
+
+    // Event delegation for item menus
+    itemsContainerEl.addEventListener('click', function(e) {
+        const target = e.target;
+
+        // Prevent card navigation when clicking menu button
+        if (target.classList.contains('item-menu-btn')) {
+            e.stopPropagation();
+            // Close other menus
+            document.querySelectorAll('.item-menu-dropdown.visible').forEach(menu => {
+                if (menu !== target.nextElementSibling) {
+                    menu.classList.remove('visible');
+                }
+            });
+            target.nextElementSibling.classList.toggle('visible');
+        }
+
+        // Handle rename action
+        if (target.classList.contains('rename-btn')) {
+            e.stopPropagation();
+            e.preventDefault();
+            const card = target.closest('.item-card');
+            const itemId = card.dataset.itemId;
+            const itemType = card.dataset.itemType;
+            const currentName = card.querySelector('.item-name').innerText;
+            const newName = prompt(`Enter new name for "${currentName}":`, currentName);
+
+            if (newName && newName.trim() !== currentName) {
+                fetch('{{ url_for("update_item") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ item_id: itemId, item_type: itemType, name: newName.trim() })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        // For simplicity, we reload the page to see changes.
+                        // A more advanced implementation would update the state locally.
+                        window.location.reload();
+                    }
+                });
             }
         }
     });

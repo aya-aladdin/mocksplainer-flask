@@ -36,6 +36,7 @@ class User(UserMixin, db.Model):
 class Folder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    icon = db.Column(db.String(10), nullable=False, default='📁')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     parent_id = db.Column(db.Integer, db.ForeignKey('folder.id'), nullable=True)
     
@@ -164,6 +165,68 @@ def create_folder():
         db.session.rollback()
         print(f"Folder Creation Error: {e}")
         return jsonify({'error': 'Failed to create folder.'}), 500
+
+@login_required
+@app.route('/update_item', methods=['POST'])
+def update_item():
+    """Updates an item's name or icon."""
+    data = request.json
+    item_id = data.get('item_id')
+    item_type = data.get('item_type')
+    new_name = data.get('name')
+    new_icon = data.get('icon')
+
+    try:
+        if item_type == 'folder':
+            item = Folder.query.get(item_id)
+            if item and item.user_id == current_user.id:
+                if new_name: item.name = new_name
+                if new_icon: item.icon = new_icon
+        elif item_type == 'flashcard':
+            item = Flashcard.query.get(item_id)
+            if item and item.owner.id == current_user.id:
+                if new_name: item.question = new_name # Rename a flashcard by its question
+        
+        db.session.commit()
+        return jsonify({'message': 'Item updated successfully.'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update item.'}), 500
+
+@app.route('/delete_item', methods=['POST'])
+@login_required
+def delete_item():
+    # Note: This is a simple delete. A robust implementation would handle recursive folder deletion.
+    data = request.json
+    item_id = data.get('item_id')
+    item_type = data.get('item_type')
+    # ... (Implementation for deleting items would go here)
+    return jsonify({'message': 'Delete functionality not fully implemented.'})
+
+@app.route('/move_item', methods=['POST'])
+@login_required
+def move_item():
+    """Moves a flashcard or a folder to a new parent folder."""
+    data = request.json
+    item_id = data.get('item_id')
+    item_type = data.get('item_type') # 'flashcard' or 'folder'
+    target_folder_id = data.get('target_folder_id')
+
+    try:
+        if item_type == 'flashcard':
+            item = Flashcard.query.get(item_id)
+            if item and item.user_id == current_user.id:
+                item.folder_id = target_folder_id
+        elif item_type == 'folder':
+            item = Folder.query.get(item_id)
+            if item and item.user_id == current_user.id:
+                item.parent_id = target_folder_id
+        
+        db.session.commit()
+        return jsonify({'message': 'Item moved successfully.'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to move item.'}), 500
 
 # --- Hack Club AI Chat Endpoint ---
 
@@ -314,6 +377,7 @@ def flashcards():
         return {
             'id': folder.id,
             'name': folder.name,
+            'icon': folder.icon,
             'subfolders': [build_folder_tree(sub) for sub in folder.subfolders],
             'flashcards': [{'id': fc.id, 'question': fc.question, 'answer': fc.answer, 'topic': fc.topic} for fc in folder.flashcards]
         }
