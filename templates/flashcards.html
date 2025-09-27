@@ -82,6 +82,8 @@ document.addEventListener('DOMContentLoaded', function() {
         folders: {{ folder_structure | tojson | safe }},
         root_flashcards: {{ root_flashcards | tojson | safe }}
     };
+    let itemToMove = null;
+    let itemToChangeIcon = null;
     let currentFolderId = null;
     let breadcrumbs = [];
 
@@ -91,6 +93,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentFolderNameEl = document.getElementById('current-folder-name');
     const breadcrumbsEl = document.getElementById('breadcrumbs');
     const newFolderBtn = document.getElementById('new-folder-btn');
+    const moveItemModal = document.getElementById('move-item-modal');
+    const moveFolderTreeEl = document.getElementById('move-folder-tree');
+    const confirmMoveBtn = document.getElementById('confirm-move-btn');
+    const cancelMoveBtn = document.getElementById('cancel-move-btn');
 
     // --- RENDER FUNCTIONS ---
 
@@ -120,6 +126,33 @@ document.addEventListener('DOMContentLoaded', function() {
         parentElement.appendChild(ul);
     }
     
+    function renderMoveFolderTree(folders, parentElement, level = 0) {
+        const ul = document.createElement('ul');
+        ul.style.paddingLeft = level > 0 ? '20px' : '0';
+        ul.style.listStyle = 'none';
+
+        folders.forEach(folder => {
+            // Don't allow moving a folder into itself or its children
+            if (itemToMove && itemToMove.type === 'folder' && itemToMove.id === folder.id) {
+                return;
+            }
+
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = '#';
+            a.dataset.folderId = folder.id;
+            a.innerHTML = `<span class="folder-icon">${folder.icon}</span> ${folder.name}`;
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('#move-folder-tree a').forEach(link => link.classList.remove('active'));
+                a.classList.add('active');
+            });
+            li.appendChild(a);
+            ul.appendChild(li);
+        });
+        parentElement.appendChild(ul);
+    }
+
     function renderItems(items) {
         itemsContainerEl.innerHTML = ''; // Clear current items
         
@@ -324,7 +357,124 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         }
+
+        // Handle move action
+        if (target.classList.contains('move-btn')) {
+            e.stopPropagation();
+            e.preventDefault();
+            const card = target.closest('.item-card');
+            itemToMove = {
+                id: card.dataset.itemId,
+                type: card.dataset.itemType
+            };
+            openMoveModal();
+        }
+
+        // Handle change icon action
+        if (target.classList.contains('change-icon-btn')) {
+            e.stopPropagation();
+            e.preventDefault();
+            const card = target.closest('.item-card');
+            const itemId = card.dataset.itemId;
+            const newIcon = prompt(`Enter a single emoji icon:`);
+
+            // A simple validation to check if it's likely an emoji
+            if (newIcon && newIcon.trim().length > 0 && /\p{Emoji}/u.test(newIcon.trim())) {
+                updateItemIcon(itemId, newIcon.trim());
+            } else if (newIcon) {
+                alert("Please enter a valid emoji.");
+            }
+        }
+
+        // Handle delete action
+        if (target.classList.contains('delete-btn')) {
+            e.stopPropagation();
+            e.preventDefault();
+            const card = target.closest('.item-card');
+            const itemId = card.dataset.itemId;
+            const itemType = card.dataset.itemType;
+            const itemName = card.querySelector('.item-name').innerText;
+
+            if (confirm(`Are you sure you want to delete "${itemName}"?`)) {
+                fetch('{{ url_for("delete_item") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ item_id: itemId, item_type: itemType })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        card.remove(); // Remove from DOM instantly
+                    } else {
+                        alert(data.error || 'Failed to delete item.');
+                    }
+                });
+            }
+        }
     });
+
+    // --- MODAL LOGIC ---
+
+    function openMoveModal() {
+        moveFolderTreeEl.innerHTML = '';
+        // Add a "Root" option
+        const rootLink = document.createElement('a');
+        rootLink.href = '#';
+        rootLink.dataset.folderId = 'null'; // Use string 'null' for root
+        rootLink.innerHTML = `🏠 All Flashcards (Root)`;
+        rootLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelectorAll('#move-folder-tree a').forEach(link => link.classList.remove('active'));
+            rootLink.classList.add('active');
+        });
+        moveFolderTreeEl.appendChild(rootLink);
+
+        renderMoveFolderTree(fullData.folders, moveFolderTreeEl);
+        moveItemModal.style.display = 'flex';
+    }
+
+    confirmMoveBtn.addEventListener('click', async () => {
+        const selectedLink = moveFolderTreeEl.querySelector('a.active');
+        if (!selectedLink || !itemToMove) return;
+
+        const targetFolderId = selectedLink.dataset.folderId === 'null' ? null : parseInt(selectedLink.dataset.folderId);
+
+        try {
+            const response = await fetch('{{ url_for("move_item") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ item_id: itemToMove.id, item_type: itemToMove.type, target_folder_id: targetFolderId })
+            });
+            if (!response.ok) throw new Error('Failed to move item.');
+            
+            window.location.reload(); // Reload to see changes
+        } catch (error) {
+            console.error(error);
+            alert('Error moving item.');
+        }
+    });
+
+    cancelMoveBtn.addEventListener('click', () => moveItemModal.style.display = 'none');
+    moveItemModal.addEventListener('click', (e) => {
+        if (e.target === moveItemModal) {
+            moveItemModal.style.display = 'none';
+        }
+    });
+
+    async function updateItemIcon(itemId, newIcon) {
+        try {
+            const response = await fetch('{{ url_for("update_item") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ item_id: itemId, item_type: 'folder', icon: newIcon })
+            });
+            if (!response.ok) throw new Error('Failed to update icon.');
+            window.location.reload();
+        } catch (error) {
+            console.error(error);
+            alert('Error updating icon.');
+        }
+    }
 
     // --- INITIALIZATION ---
     function initialize() {

@@ -196,12 +196,26 @@ def update_item():
 @app.route('/delete_item', methods=['POST'])
 @login_required
 def delete_item():
-    # Note: This is a simple delete. A robust implementation would handle recursive folder deletion.
     data = request.json
     item_id = data.get('item_id')
     item_type = data.get('item_type')
-    # ... (Implementation for deleting items would go here)
-    return jsonify({'message': 'Delete functionality not fully implemented.'})
+
+    try:
+        if item_type == 'flashcard':
+            item = Flashcard.query.get(item_id)
+            if item and item.user_id == current_user.id:
+                db.session.delete(item)
+        elif item_type == 'folder':
+            item = Folder.query.get(item_id)
+            if item and item.user_id == current_user.id:
+                if item.subfolders or item.flashcards.count() > 0:
+                    return jsonify({'error': 'Folder is not empty.'}), 400
+                db.session.delete(item)
+        db.session.commit()
+        return jsonify({'message': 'Item deleted successfully.'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to delete item.'}), 500
 
 @app.route('/move_item', methods=['POST'])
 @login_required
