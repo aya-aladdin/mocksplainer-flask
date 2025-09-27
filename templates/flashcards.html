@@ -83,6 +83,21 @@
                 <div id="ai-loading-spinner" style="display: none; margin-top: 1rem;">Generating...</div>
             </form>
         </div>
+
+        <!-- Manual Creator Tab -->
+        <div id="create-manual" class="tab-content" style="display: none;">
+            <form id="manual-creator-form">
+                <div class="form-group">
+                    <label for="manual-question">Question</label>
+                    <textarea id="manual-question" class="form-control" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="manual-answer">Answer</label>
+                    <textarea id="manual-answer" class="form-control" rows="2" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Flashcard</button>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -168,16 +183,38 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function renderMoveFolderTree(folders, parentElement, level = 0) {
         const ul = document.createElement('ul');
-        ul.style.paddingLeft = level > 0 ? '20px' : '0';
-        ul.style.listStyle = 'none';
+        if (level > 0) {
+            ul.classList.add('nested');
+        }
 
         folders.forEach(folder => {
-            // Don't allow moving a folder into itself or its children
+            // Prevent moving a folder into itself
             if (itemToMove && itemToMove.type === 'folder' && itemToMove.id === folder.id) {
                 return;
             }
 
             const li = document.createElement('li');
+            const hasSubfolders = folder.subfolders && folder.subfolders.length > 0;
+
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'move-folder-item';
+
+            // Add toggle arrow if there are subfolders
+            if (hasSubfolders) {
+                const toggleArrow = document.createElement('span');
+                toggleArrow.className = 'toggle-arrow';
+                toggleArrow.innerHTML = '▶';
+                toggleArrow.onclick = (e) => {
+                    e.stopPropagation();
+                    const sublist = li.querySelector('ul');
+                    if (sublist) {
+                        sublist.classList.toggle('open');
+                        toggleArrow.classList.toggle('open');
+                    }
+                };
+                itemDiv.appendChild(toggleArrow);
+            }
+
             const a = document.createElement('a');
             a.href = '#';
             a.dataset.folderId = folder.id;
@@ -187,7 +224,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.querySelectorAll('#move-folder-tree a').forEach(link => link.classList.remove('active'));
                 a.classList.add('active');
             });
-            li.appendChild(a);
+            itemDiv.appendChild(a);
+            li.appendChild(itemDiv);
+
+            if (hasSubfolders) {
+                renderMoveFolderTree(folder.subfolders, li, level + 1);
+            }
+
             ul.appendChild(li);
         });
         parentElement.appendChild(ul);
@@ -238,7 +281,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
                 <div class="flashcard-footer">
-                    <div class="flashcard-item-topic">${flashcard.topic}</div>
                     <div class="item-menu-btn">...</div>
                     <div class="item-menu-dropdown">
                         <a href="#" class="rename-btn">Rename</a>
@@ -634,6 +676,59 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Error updating icon.');
         }
     }
+
+    // --- Tab Switching in Creator Modal ---
+    const creatorTabs = document.querySelector('.creator-tabs');
+    creatorTabs.addEventListener('click', (e) => {
+        if (e.target.classList.contains('tab-link')) {
+            const tabId = e.target.dataset.tab;
+
+            // Update active tab button
+            creatorTabs.querySelectorAll('.tab-link').forEach(tab => tab.classList.remove('active'));
+            e.target.classList.add('active');
+
+            // Show correct tab content
+            document.querySelectorAll('#create-flashcard-modal .tab-content').forEach(content => {
+                content.style.display = content.id === tabId ? 'block' : 'none';
+            });
+        }
+    });
+
+    // --- Manual Flashcard Creation ---
+    const manualCreatorForm = document.getElementById('manual-creator-form');
+    manualCreatorForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const question = document.getElementById('manual-question').value;
+        const answer = document.getElementById('manual-answer').value;
+
+        const newFlashcard = { topic: "Manual", question, answer };
+
+        const saveResult = await saveFlashcards([newFlashcard], currentFolderId);
+        if (saveResult) {
+            // Add to DOM and local state
+            addFlashcardToDOM(newFlashcard);
+            if (currentFolderId === null) {
+                fullData.root_flashcards.push(newFlashcard);
+            } else {
+                findFolder(currentFolderId).flashcards.push(newFlashcard);
+            }
+            manualCreatorForm.reset();
+            createFlashcardModal.style.display = 'none';
+        }
+    });
+
+
+    // Global click listener to close menus
+    document.addEventListener('click', function (e) {
+        // If the click is not on a menu button and not inside a dropdown
+        if (!e.target.closest('.item-menu-btn') && !e.target.closest('.item-menu-dropdown')) {
+            // Close all open menus
+            document.querySelectorAll('.item-card.menu-open').forEach(card => {
+                card.classList.remove('menu-open');
+                card.querySelector('.item-menu-dropdown').classList.remove('visible');
+            });
+        }
+    });
 
     // --- INITIALIZATION ---
     function initialize() {
