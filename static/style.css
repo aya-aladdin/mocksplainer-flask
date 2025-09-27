@@ -922,3 +922,31 @@ margin-top: 1rem;
 .performance-list .progress-bar-container { flex-grow: 1; height: 10px; background-color: #e9ecef; border-radius: 5px; overflow: hidden; }
 .performance-list .progress-bar { height: 100%; background-color: var(--accent); border-radius: 5px; transition: width 0.5s ease-in-out; }
 .performance-list .accuracy-label { font-size: 0.9rem; font-weight: 500; min-width: 40px; text-align: right; }
+
+/* --- Test Generator & Taker Styles --- */
+.test-questions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.test-question-card {
+    transition: none;
+}
+.test-question-card:hover {
+    transform: none;
+    box-shadow: var(--shadow);
+}
+
+.question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1rem;
+}
+.question-header h4 { margin: 0; }
+.marks-label { font-size: 0.9rem; color: var(--muted); font-weight: 500; }
+.question-text { margin-bottom: 1.5rem; line-height: 1.7; }
+.question-text p:last-child { margin-bottom: 0; }
+.answer-area { margin-bottom: 1rem; }
+.test-submission-area { text-align: center; margin-top: 3rem; }

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Mock Test Generator{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>Mock Test Generator</h1>
+        <p class="muted">Create IGCSE-style exams on any topic using AI and track your performance.</p>
+    </div>
+
+    <!-- Test Generator Card -->
+    <div class="card leaderboard-card">
+        <div class="pad">
+            <h3 class="card-section-title">Create a New Test</h3>
+            <form id="test-generator-form">
+                <div class="form-group">
+                    <label for="test-topic">Topic</label>
+                    <input type="text" id="test-topic" class="form-control" placeholder="e.g., Photosynthesis, The Cold War" required>
+                </div>
+                <div class="form-group">
+                    <label for="num-questions">Number of Questions</label>
+                    <select id="num-questions" class="form-control" style="width: 120px;">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="15">15</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Generate Test</button>
+                <div id="test-loading-spinner" style="display: none; margin-top: 1rem;">
+                    <p>Generating your test... This may take a moment.</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Previously Generated Tests -->
+    <div class="card leaderboard-card">
+        <div class="pad">
+            <h3 class="card-section-title">My Tests</h3>
+            {% if tests %}
+            <ul class="activity-list">
+                {% for test in tests %}
+                <li>
+                    <a href="{{ url_for('take_test', test_id=test.id) }}" class="activity-link" style="justify-content: space-between;">
+                        <span><strong>{{ test.topic }}</strong></span>
+                        <span class="muted">{{ test.timestamp.strftime('%d %b %Y') }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="muted">Your generated tests will appear here.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('test-generator-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const topic = document.getElementById('test-topic').value;
+    const num_questions = document.getElementById('num-questions').value;
+    const spinner = document.getElementById('test-loading-spinner');
+    spinner.style.display = 'block';
+
+    const response = await fetch('{{ url_for("generate_test_ai") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, num_questions: parseInt(num_questions) })
+    });
+
+    spinner.style.display = 'none';
+    const data = await response.json();
+
+    if (response.ok) {
+        window.location.href = `/tests/${data.test_id}`;
+    } else {
+        alert('Error: ' + (data.error || 'Could not generate test.'));
+    }
+});
+</script>
+{% endblock %}

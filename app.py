@@ -6,6 +6,8 @@ from flask import Flask, render_template, redirect, url_for, flash, request, jso
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+import markdown
+from markupsafe import Markup
 
 # --- Hack Club AI Configuration ---
 HACKCLUB_API_URL = "https://ai.hackclub.com/chat/completions"
@@ -24,6 +26,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
+
+@app.template_filter('markdown')
+def markdown_to_html(text):
+    """Converts markdown text to HTML."""
+    return Markup(markdown.markdown(text))
 
 # --- Database Models ---
 
@@ -61,6 +68,23 @@ class FlashcardAttempt(db.Model):
 
     user = db.relationship('User', backref=db.backref('attempts', lazy='dynamic'))
     flashcard = db.relationship('Flashcard', backref=db.backref('attempts', lazy='dynamic'))
+
+class MockTest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    topic = db.Column(db.String(150), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref=db.backref('mock_tests', lazy='dynamic'))
+    questions = db.relationship('TestQuestion', backref='test', lazy='dynamic', cascade="all, delete-orphan")
+
+class TestQuestion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    test_id = db.Column(db.Integer, db.ForeignKey('mock_test.id'), nullable=False)
+    question_number = db.Column(db.Integer, nullable=False)
+    question_text = db.Column(db.Text, nullable=False) # Can contain markdown
+    marks = db.Column(db.Integer, nullable=False)
+    answer_text = db.Column(db.Text, nullable=False) # The official mark scheme
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -176,6 +200,78 @@ def create_folder():
         db.session.rollback()
         print(f"Folder Creation Error: {e}")
         return jsonify({'error': 'Failed to create folder.'}), 500
+
+@app.route('/generate_test_ai', methods=['POST'])
+@login_required
+def generate_test_ai():
+    """
+    Uses AI to generate a mock test with questions and a mark scheme.
+    """
+    data = request.json
+    topic = data.get('topic', '').strip()
+    num_questions = data.get('num_questions', 5)
+
+    if not topic:
+        return jsonify({'error': 'Please provide a topic for the test.'}), 400
+
+    try:
+        system_prompt = r"""
+            "You are an expert IGCSE exam creator. Your task is to generate a mock test based on a user-provided topic. "
+            "The test should consist of a specified number of questions. Each question must have a question number, the question text (in Markdown), the number of marks, and a detailed answer for the mark scheme. "
+            "Respond ONLY with a valid JSON object. This JSON object must contain a single key 'questions', which is an array of question objects. "
+            "Crucially, ensure all double quotes within any string values are properly escaped with a backslash (e.g., \"). Also, ensure any literal backslashes in the text are escaped (e.g., a single backslash \ should be written as \\). "
+            "Example: {\"questions\": [{\"question_number\": 1, \"question_text\": \"Explain the term 'osmosis'.\", \"marks\": 2, \"answer_text\": \"- Osmosis is the net movement of water molecules...\\n- from a region of higher water potential to a region of lower water potential...\"}]}"
+        """
+        
+        user_prompt = f"Generate an IGCSE-level mock test on the topic '{topic}' with {num_questions} questions."
+
+        api_messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ]
+
+        req = urllib.request.Request(
+            HACKCLUB_API_URL,
+            data=json.dumps({"model": "gpt-4o-mini", "messages": api_messages, "max_tokens": 2000}).encode('utf-8'),
+            headers={'Content-Type': 'application/json'}
+        )
+
+        with urllib.request.urlopen(req) as response:
+            if response.status == 200:
+                response_text = response.read().decode('utf-8')
+                ai_response_data = json.loads(response_text)
+                content = ai_response_data['choices'][0]['message']['content']
+                
+                json_start = content.find('{')
+                json_end = content.rfind('}') + 1
+                test_json_str = content[json_start:json_end]
+                
+                test_data = json.loads(test_json_str)
+                questions_data = test_data.get('questions', [])
+
+                # Save the new test and its questions to the database
+                new_test = MockTest(user_id=current_user.id, topic=topic)
+                db.session.add(new_test)
+                db.session.flush() # Flush to get the new_test.id
+
+                for q_data in questions_data:
+                    # Make the data insertion more robust by explicitly mapping fields.
+                    # This prevents errors if the AI includes extra, unexpected fields.
+                    new_question = TestQuestion(
+                        test_id=new_test.id,
+                        question_number=q_data.get('question_number'),
+                        question_text=q_data.get('question_text'),
+                        marks=q_data.get('marks'),
+                        answer_text=q_data.get('answer_text')
+                    )
+                    db.session.add(new_question)
+                
+                db.session.commit()
+                return jsonify({'message': 'Test generated successfully!', 'test_id': new_test.id})
+    except Exception as e:
+        db.session.rollback()
+        print(f"AI Test Generation Error: {e}")
+        return jsonify({'error': f'An error occurred while generating the test. The AI may have returned an invalid format. Details: {str(e)}'}), 500
 
 @app.route('/get_learn_session_flashcards', methods=['POST'])
 @login_required
@@ -532,6 +628,22 @@ def profile():
             seen_folder_ids.add(attempt.flashcard.folder.id)
 
     return render_template('profile.html', total_flashcards=total_flashcards, topic_performance=topic_performance, recent_folders=recent_folders[:5], topics_data=topics_dict, total_questions_answered=total_questions_answered)
+
+@app.route('/tests')
+@login_required
+def tests():
+    """Displays the mock test generator dashboard."""
+    user_tests = MockTest.query.filter_by(user_id=current_user.id).order_by(MockTest.timestamp.desc()).all()
+    return render_template('tests.html', tests=user_tests)
+
+@app.route('/tests/<int:test_id>')
+@login_required
+def take_test(test_id):
+    """Displays a specific test for the user to take."""
+    test = MockTest.query.get_or_404(test_id)
+    if test.user_id != current_user.id:
+        return "Unauthorized", 403
+    return render_template('take_test.html', test=test)
 
 @app.route('/chatbot')
 @login_required
