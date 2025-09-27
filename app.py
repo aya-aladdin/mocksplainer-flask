@@ -40,20 +40,6 @@ class Flashcard(db.Model):
     question = db.Column(db.Text, nullable=False)
     answer = db.Column(db.Text, nullable=False)
 
-class Conversation(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    title = db.Column(db.String(150), nullable=False, default="New Chat")
-    timestamp = db.Column(db.DateTime, server_default=db.func.now())
-    messages = db.relationship('ChatMessage', backref='conversation', lazy=True, cascade="all, delete-orphan")
-
-class ChatMessage(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    conversation_id = db.Column(db.Integer, db.ForeignKey('conversation.id'), nullable=False)
-    sender = db.Column(db.String(50), nullable=False) # 'user' or 'bot'
-    content = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, server_default=db.func.now())
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -101,27 +87,9 @@ def save_flashcards():
 def chat():
     data = request.json
     user_message = data.get("message", "").strip()
-    conversation_id = data.get("conversation_id")
 
     if not user_message:
         return jsonify({"reply": "⚠️ Please type a message."})
-
-    # If no conversation_id is provided, create a new conversation
-    if not conversation_id:
-        # Generate a title from the first message
-        title = (user_message[:40] + '...') if len(user_message) > 40 else user_message
-        new_conversation = Conversation(user_id=current_user.id, title=title)
-        db.session.add(new_conversation)
-        db.session.commit()
-        conversation_id = new_conversation.id
-    
-    # Save user message
-    user_chat_message = ChatMessage(conversation_id=conversation_id, sender='user', content=user_message)
-    db.session.add(user_chat_message)
-    db.session.commit()
-
-    # Get the conversation object
-    conversation = Conversation.query.get(conversation_id)
 
     try:
         # System Instruction for the IGCSE TutorBot
@@ -165,12 +133,7 @@ def chat():
                 else:
                     reply = content.strip()
 
-                # Save bot message
-                bot_chat_message = ChatMessage(conversation_id=conversation_id, sender='bot', content=reply)
-                db.session.add(bot_chat_message)
-                db.session.commit()
-
-                return jsonify({"reply": reply, "conversation_id": conversation_id, "conversation_title": conversation.title})
+                return jsonify({"reply": reply})
             else:
                 # Read error response body if available
                 error_body = response.read().decode('utf-8', errors='ignore')
@@ -250,21 +213,10 @@ def profile():
     recent_flashcards = Flashcard.query.filter_by(user_id=current_user.id).order_by(Flashcard.id.desc()).limit(5).all()
     return render_template('profile.html', total_flashcards=total_flashcards, topics=topics, recent_flashcards=recent_flashcards)
 
-@app.route('/chatbot', defaults={'conversation_id': None})
-@app.route('/chatbot/<int:conversation_id>')
+@app.route('/chatbot')
 @login_required
-def chatbot(conversation_id):
-    # Fetch all conversations for the sidebar
-    conversations = Conversation.query.filter_by(user_id=current_user.id).order_by(Conversation.timestamp.desc()).all()
-    
-    # If a specific conversation is requested, fetch its messages
-    active_conversation_messages = []
-    if conversation_id:
-        active_conversation = Conversation.query.get(conversation_id)
-        if active_conversation and active_conversation.user_id == current_user.id:
-            active_conversation_messages = active_conversation.messages
-
-    return render_template('chatbot.html', conversations=conversations, active_conversation_messages=active_conversation_messages, active_conversation_id=conversation_id)
+def chatbot():
+    return render_template('chatbot.html')
 
 @app.route('/flashcards')
 @login_required

@@ -436,12 +436,19 @@ margin-top: 1rem;
     display: flex;
 }
 
-.chatbot-page-container {
-    max-width: 900px; /* Wider chat area */
+.chatbot-page-container.gemini-style {
+    max-width: 900px;
     margin: 0 auto; /* Center it */
-    padding: 0 0.5rem; /* Smaller side margins */
     width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
+
+.gemini-style .chat-main {
+    height: 100%;
+}
+
 
 .chatbot-card.card {
     box-shadow: none;
@@ -458,12 +465,11 @@ margin-top: 1rem;
     width: 100%;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: calc(100vh - 61px - 6rem); /* Full height minus header and padding */
     border: none;
-    border-radius: 12px;
     overflow: hidden;
-    background: var(--panel);
-    box-shadow: var(--shadow);
+    background: transparent;
+    box-shadow: none;
 }
 
 #chat-messages {
@@ -476,48 +482,155 @@ margin-top: 1rem;
 }
 
 .message {
-    padding: 10px 16px;
-    border-radius: 18px;
     max-width: 80%;
     line-height: 1.5;
+    display: flex;
+    gap: 1rem;
 }
 
 .user-message {
-    background-color: var(--accent);
-    color: white;
     align-self: flex-end;
-    border-bottom-right-radius: 4px;
+    flex-direction: row-reverse;
 }
 
 .bot-message {
-    background-color: var(--panel-2);
-    color: var(--ink);
     align-self: flex-start;
-    border: 1px solid #e2e8f0;
-    border-bottom-left-radius: 4px;
+}
+
+.message-content {
+    padding: 10px 16px;
+    border-radius: 18px;
+}
+
+.user-message .message-content {
+    background-color: #eef4ff;
+    color: #1f2937;
+}
+
+.bot-message .message-content {
+    background-color: transparent;
+    padding: 0;
+}
+
+.user-avatar, .bot-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+.user-avatar {
+    background-color: #7c3aed;
+    color: white;
+}
+
+.bot-avatar {
+    background: linear-gradient(135deg, #4285f4, #9b72cb, #d96570, #f2a60c);
+    color: white;
+    font-size: 1.2rem;
 }
 
 #chat-form {
     display: flex;
-    gap: 10px;
-    padding: 1rem;
-    border-top: 1px solid #e9ecef;
-    background: var(--panel);
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #f0f4f9;
+    border-radius: 999px;
+    margin-top: 1rem;
+    box-shadow: var(--shadow);
 }
 
 #chat-input {
     flex-grow: 1;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 8px;
-    border-radius: 8px;
-    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    padding: 10px;
     font-size: 1rem;
 }
 #chat-input:focus {
     outline: none;
-    border-color: var(--accent);
-    box-shadow: var(--ring);
+}
+
+#send-button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+#send-button:hover {
+    background: #1d4ed8;
+}
+
+/* Gemini Welcome Screen Styles */
+#chat-welcome-screen {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding-bottom: 10vh;
+}
+
+.welcome-header h1 {
+    font-size: 3.5rem;
+    font-weight: 600;
+}
+.welcome-header h2 {
+    font-size: 1.5rem;
+    color: var(--muted);
+    font-weight: 400;
+}
+.gradient-text {
+    background: -webkit-linear-gradient(135deg, #4285f4, #9b72cb, #d96570, #f2a60c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.prompt-suggestions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 3rem;
+    width: 100%;
+}
+
+.suggestion-card {
+    background-color: #f0f4f9;
+    padding: 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    position: relative;
+    min-height: 100px;
+}
+.suggestion-card:hover {
+    background-color: #e1e7f0;
+}
+.suggestion-card p {
+    font-weight: 500;
+}
+.suggestion-card .card-icon {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    font-size: 1.5rem;
+    background-color: white;
+    padding: 0.5rem;
+    border-radius: 50%;
+    box-shadow: var(--shadow);
 }
 
 .flashcards-container {

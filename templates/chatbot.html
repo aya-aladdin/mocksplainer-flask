@@ -3,38 +3,42 @@
 {% block title %}Chatbot Tutor{% endblock %}
 
 {% block content %}
-<div class="chat-layout-container">
-    <!-- Sidebar for Chat History -->
-    <aside class="chat-sidebar">
-        <div class="sidebar-header">
-            <a href="{{ url_for('chatbot') }}" class="btn new-chat-btn">
-                <span>+</span> New Chat
-            </a>
-        </div>
-        <nav class="chat-history">
-            <ul>
-                {% for conv in conversations %}
-                <li class="{{ 'active' if conv.id == active_conversation_id else '' }}">
-                    <a href="{{ url_for('chatbot', conversation_id=conv.id) }}">{{ conv.title }}</a>
-                </li>
-                {% endfor %}
-            </ul>
-        </nav>
-    </aside>
-
+<div class="chatbot-page-container gemini-style">
     <!-- Main Chat Area -->
     <main class="chat-main">
         <div id="chat-container">
-            <div id="chat-messages">
-                {% for message in active_conversation_messages %}
-                    <div class="message {{ 'user-message' if message.sender == 'user' else 'bot-message' }}">
-                        {{ message.content | safe }}
+            <!-- Gemini-style Welcome Screen -->
+            <div id="chat-welcome-screen">
+                <div class="welcome-header">
+                    <h1 class="gradient-text">Hello, {{ current_user.username }}</h1>
+                    <h2>How can I help you today?</h2>
+                </div>
+                <div class="prompt-suggestions">
+                    <div class="suggestion-card" onclick="startWithPrompt('Explain Brownian motion')">
+                        <p>Explain Brownian motion</p>
+                        <div class="card-icon">🔬</div>
                     </div>
-                {% endfor %}
+                    <div class="suggestion-card" onclick="startWithPrompt('What are the main themes in \'To Kill a Mockingbird\'?')">
+                        <p>Analyze themes in "To Kill a Mockingbird"</p>
+                        <div class="card-icon">📚</div>
+                    </div>
+                    <div class="suggestion-card" onclick="startWithPrompt('Help me solve this quadratic equation: x^2 - 5x + 6 = 0')">
+                        <p>Solve a quadratic equation</p>
+                        <div class="card-icon">🧮</div>
+                    </div>
+                    <div class="suggestion-card" onclick="startWithPrompt('Summarize the process of photosynthesis')">
+                        <p>Summarize photosynthesis</p>
+                        <div class="card-icon">🌿</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat-messages">
+                <!-- Chat messages will be appended here by JavaScript -->
             </div>
             <form id="chat-form">
-                <input type="text" id="chat-input" placeholder="Ask a question..." autocomplete="off">
-                <button type="submit" class="btn btn-primary">Send</button>
+                <input type="text" id="chat-input" placeholder="Enter a prompt here" autocomplete="off">
+                <button type="submit" id="send-button" title="Send message">➤</button>
             </form>
         </div>
     </main>
@@ -44,21 +48,38 @@
         const chatForm = document.getElementById('chat-form');
         const chatInput = document.getElementById('chat-input');
         const chatMessages = document.getElementById('chat-messages');
-        let currentConversationId = {{ active_conversation_id | tojson }};
+        const welcomeScreen = document.getElementById('chat-welcome-screen');
 
+        /**
+         * Appends a new message to the chat container and handles rendering.
+         */
         function appendMessage(sender, text) {
+            // Hide welcome screen on first message
+            if (welcomeScreen.style.display !== 'none') {
+                welcomeScreen.style.display = 'none';
+            }
+
             const messageElement = document.createElement('div');
             messageElement.classList.add('message');
             
             if (sender === 'bot') {
-                messageElement.innerHTML = marked.parse(text); // Use marked.js to parse markdown
+                const avatar = '<div class="bot-avatar">✨</div>';
+                // Use marked.js to parse markdown for bot messages
+                messageElement.innerHTML = avatar + '<div class="message-content">' + marked.parse(text) + '</div>'; 
             } else {
-                messageElement.textContent = text; // For user messages, just display plain text
+                const avatar = '<div class="user-avatar">{{ current_user.username[0] | upper }}</div>';
+                // For user messages, display plain text only
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                messageContent.textContent = text;
+                messageElement.innerHTML = avatar;
+                messageElement.appendChild(messageContent);
             }
+
             messageElement.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
             chatMessages.appendChild(messageElement);
 
-            // After appending, tell KaTeX to render math in the new message
+            // After appending, tell KaTeX to render math expressions
             if (sender === 'bot') {
                 renderMathInElement(messageElement, {
                     delimiters: [
@@ -73,17 +94,8 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // On page load, render markdown and math for existing messages
-        document.querySelectorAll('.bot-message').forEach(messageElement => {
-            messageElement.innerHTML = marked.parse(messageElement.innerHTML);
-            renderMathInElement(messageElement, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}, {left: '\\(', right: '\\)', display: false}, {left: '\\[', right: '\\]', display: true}] });
-        });
-        chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom on load
-
-        chatForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const message = chatInput.value;
+        async function sendMessage() {
+            const message = chatInput.value.trim();
             if (!message) return;
 
             appendMessage('user', message);
@@ -95,7 +107,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ message: message, conversation_id: currentConversationId })
+                    body: JSON.stringify({ message: message })
                 });
 
                 if (!response.ok) {
@@ -104,16 +116,24 @@
 
                 const data = await response.json();
 
-                // If this was a new chat, redirect to the new conversation URL to preserve history
-                if (!currentConversationId && data.conversation_id) {
-                    window.location.href = `/chatbot/${data.conversation_id}`;
-                }
-                appendMessage('bot', data.reply); // The new message is already on the page if we redirected, but this is fine for now.
+                // Append the new message to allow multi-turn chat
+                appendMessage('bot', data.reply);
 
             } catch (error) {
                 console.error('Error:', error);
                 appendMessage('bot', 'Sorry, something went wrong. Please try again.');
             }
+        }
+
+        function startWithPrompt(prompt) {
+            chatInput.value = prompt;
+            sendMessage();
+        }
+
+        // --- Form Submission Logic ---
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            sendMessage();
         });
     </script>
 {% endblock %}
