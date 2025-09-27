@@ -36,7 +36,38 @@
         </div>
     </div>
 
+    <div class="container">
+            <nav class="feature-showcase-nav">
+                <button class="feature-tab active" data-feature="flashcards">AI Flashcards</button>
+                <button class="feature-tab" data-feature="ai-tutor">AI Tutor</button>
+                <button class="feature-tab" data-feature="mock-tests">Generated Mocks</button>
+                <div class="feature-tab-indicator"></div>
+            </nav>
+            <div class="feature-showcase-content">
+                <div id="feature-flashcards" class="feature-panel active">
+                    <p>Instantly convert your notes into smart, interactive flashcards to supercharge your revision.</p>
+                </div>
+                <div id="feature-ai-tutor" class="feature-panel">
+                    <p>Get unstuck with a personal AI tutor that provides clear explanations for any concept, anytime.</p>
+                </div>
+                <div id="feature-mock-tests" class="feature-panel">
+                    <p>Generate complete, exam-style mock tests on any topic, complete with detailed IGCSE mark schemes.</p>
+                </div>
+            </div>
+    </div>
+
     <div class="section-bg-darker">
+        <div class="scroller">
+            <ul class="tag-list scroller__inner">
+                <li>Cambridge</li>
+                <li>IGCSE</li>
+                <li>IB</li>
+                <li>A-Levels</li>
+                <li>Edexcel</li>
+                <li>OCR</li>
+                <li>AQA</li>
+            </ul>
+        </div>
         <div class="container why-it-works">
             <h2 class="section-title">Why it works</h2>
             <div class="grid">
@@ -75,7 +106,7 @@
     </div>
 
     <div class="features-section-styled">
-        <div id="features" class="container">
+        <div id="features" class="container wide-container">
             <h2 class="section-title">Our Features</h2>
             <div class="grid features-grid-padded">
                 <div class="card">
@@ -88,6 +119,12 @@
                     <div class="pad">
                         <h3>AI Flashcards System</h3>
                         <p class="muted">Generate flashcards for quick revision of key concepts.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="pad">
+                        <h3>AI Mock Test Generator</h3>
+                        <p class="muted">Create exam-style tests on any topic, complete with detailed mark schemes.</p>
                     </div>
                 </div>
             </div>
@@ -188,6 +225,60 @@
             hamburger.addEventListener('click', function() {
                 nav.classList.toggle('active');
             });
+
+            const featureTabs = document.querySelectorAll('.feature-tab');
+            const featurePanels = document.querySelectorAll('.feature-panel');
+            const tabIndicator = document.querySelector('.feature-tab-indicator');
+
+            function moveIndicator(targetTab) {
+                const tabRect = targetTab.getBoundingClientRect();
+                const navRect = targetTab.parentElement.getBoundingClientRect();
+                tabIndicator.style.left = `${tabRect.left - navRect.left}px`;
+                tabIndicator.style.width = `${tabRect.width}px`;
+            }
+
+            featureTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const currentActiveTab = document.querySelector('.feature-tab.active');
+                    if (currentActiveTab === tab) return;
+
+                    // Deactivate all tabs
+                    featureTabs.forEach(t => t.classList.remove('active'));
+
+                    // Activate the clicked tab
+                    tab.classList.add('active');
+                    moveIndicator(tab);
+
+                    // Handle panel transitions
+                    const currentActivePanel = document.querySelector('.feature-panel.active');
+                    if (currentActivePanel) {
+                        currentActivePanel.classList.add('exiting');
+                        currentActivePanel.classList.remove('active');
+                    }
+
+                    // Activate the corresponding panel
+                    const feature = tab.dataset.feature;
+                    const newPanel = document.getElementById(`feature-${feature}`);
+                    newPanel.classList.remove('exiting');
+                    newPanel.classList.add('active');
+                });
+            });
+            moveIndicator(document.querySelector('.feature-tab.active'));
+
+            // Seamless scroller logic
+            const scrollers = document.querySelectorAll(".scroller");
+            if (scrollers.length > 0) {
+                scrollers.forEach((scroller) => {
+                    const scrollerInner = scroller.querySelector(".scroller__inner");
+                    const scrollerContent = Array.from(scrollerInner.children);
+
+                    scrollerContent.forEach((item) => {
+                        const duplicatedItem = item.cloneNode(true);
+                        duplicatedItem.setAttribute("aria-hidden", true);
+                        scrollerInner.appendChild(duplicatedItem);
+                    });
+                });
+            }
         });
     </script>
 </body>

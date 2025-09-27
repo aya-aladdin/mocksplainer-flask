@@ -37,6 +37,17 @@ flex-direction: column;
 min-height: 100vh;
 }
 
+/* Scroll Animation Classes */
+.scroll-animate {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.scroll-animate.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 
 a {
 color: var(--accent);
@@ -171,6 +182,10 @@ padding: 0 8px;
 
 .container.narrow {
 max-width: 760px;
+}
+
+.container.wide-container {
+    max-width: 1400px;
 }
 
 .main-content {
@@ -314,12 +329,117 @@ color: var(--muted);
 margin-top: 1rem;
 }
 
+
+.feature-showcase-nav {
+    display: flex;
+    position: relative;
+    justify-content: center;
+    background-color: rgba(233, 236, 239, 0.7);
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 0 4rem;
+}
+
+.feature-tab {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1; /* Ensure text is above the indicator */
+}
+
+.feature-tab-indicator {
+    position: absolute;
+    top: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    height: calc(100% - 1rem);
+    background: rgba(255, 255, 255, 0.01); /* ultra translucent */
+    backdrop-filter: blur(10px); /* stronger blur makes translucency visible */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); /* softer shadow */
+    border-radius: 999px;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: 1px solid rgba(255, 255, 255, 0.15); /* subtle border */
+    z-index: 0; /* Place indicator behind the text */
+}
+
+
+
+.feature-showcase-content {
+    text-align: center;
+    padding: 1.5rem 1rem 0.5rem 1rem;
+    position: relative;
+    min-height: 60px; /* Reserve space for the text */
+    overflow: hidden;
+}
+
+.feature-panel {
+    position: absolute;
+    width: calc(100% - 2rem);
+    opacity: 0;
+    transform: translateX(30px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+}
+
+.feature-panel.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+.feature-panel.exiting {
+    transform: translateX(-30px);
+}
+
 .section-bg-darker {
     background-color: #f3f4f6;
     padding: 3rem 0;
     margin-top: 4rem;
 }
 
+.scroller {
+    max-width: 100%;
+    overflow: hidden;
+    -webkit-mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+    mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+}
+
+.scroller__inner {
+    padding-block: 1rem;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    width: max-content;
+    animation: scroll 40s linear infinite;
+}
+
+@keyframes scroll {
+  to {
+    transform: translate(calc(-50% - 0.5rem));
+  }
+}
+
+.tag-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.tag-list li {
+    padding: 1rem 2rem;
+    background: var(--panel);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow);
+    font-weight: 500;
+    color: var(--muted);
+}
         .footer {
             background-color: #1a202c; /* Dark blue/gray */
             color: #a0aec0; /* Lighter text color */
@@ -382,11 +502,8 @@ margin-top: 1rem;
 
 .features-section-styled {
     background-color: #e9ecef;
-    padding: 2rem 1rem;
-    margin: 0 auto;
-    max-width: 1400px;
-    border-radius: 1.5rem;
-    padding-bottom: 2rem;
+    padding: 3rem 0;
+    margin-top: 4rem;
 }
 
 .chat-layout-container {
