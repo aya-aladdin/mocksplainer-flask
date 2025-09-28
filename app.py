@@ -217,7 +217,7 @@ def generate_test_ai():
             f"- Subject: {subject}\n"
             f"- Topic: {topic}\n"
             f"- Number of Questions: {num_questions}\n"
-            f"- Approximate Total Marks: {total_marks} (don't think)"
+            f"- Approximate Total Marks: {total_marks} (don't think, no: ```json``` tags)"
         )
 
         api_messages = [
