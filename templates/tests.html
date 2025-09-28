@@ -25,9 +25,9 @@
         </div>
         <div class="card">
             <div class="pad">
-                {% if tests %}
+                {% if tests_pagination.items %}
                 <ul class="activity-list">
-                    {% for test in tests %}
+                    {% for test in tests_pagination.items %}
                     <li>
                         <div class="test-list-item">
                             <a href="{{ url_for('take_test', test_id=test.id) }}" class="activity-link">
@@ -43,6 +43,27 @@
                     </li>
                     {% endfor %}
                 </ul>
+                {% if tests_pagination.pages > 1 %}
+                <div class="pagination">
+                    {% if tests_pagination.has_prev %}
+                        <a href="{{ url_for('tests', page=tests_pagination.prev_num) }}" class="btn btn-ghost btn-sm">&laquo;</a>
+                    {% endif %}
+
+                    {% for page_num in tests_pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                        {% if page_num %}
+                            {% if tests_pagination.page == page_num %}
+                                <a href="{{ url_for('tests', page=page_num) }}" class="btn btn-ghost btn-sm active">{{ page_num }}</a>
+                            {% else %}
+                                <a href="{{ url_for('tests', page=page_num) }}" class="btn btn-ghost btn-sm">{{ page_num }}</a>
+                            {% endif %}
+                        {% else %}
+                            <span class="pagination-ellipsis">...</span>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if tests_pagination.has_next %}<a href="{{ url_for('tests', page=tests_pagination.next_num) }}" class="btn btn-ghost btn-sm">&raquo;</a>{% endif %}
+                </div>
+                {% endif %}
                 {% else %}
                 <p class="muted">Your generated tests will appear here.</p>
                 {% endif %}

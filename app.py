@@ -612,8 +612,9 @@ def profile():
 @app.route('/tests')
 @login_required
 def tests():
-    user_tests = MockTest.query.filter_by(user_id=current_user.id).order_by(MockTest.timestamp.desc()).all()
-    return render_template('tests.html', tests=user_tests)
+    page = request.args.get('page', 1, type=int)
+    tests_pagination = MockTest.query.filter_by(user_id=current_user.id).order_by(MockTest.timestamp.desc()).paginate(page=page, per_page=10, error_out=False)
+    return render_template('tests.html', tests_pagination=tests_pagination)
 
 @app.route('/tests/<int:test_id>')
 @login_required
