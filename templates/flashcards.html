@@ -10,6 +10,8 @@
             <h3>My Collection</h3>
             <button class="btn btn-ghost btn-sm" id="new-folder-btn">+ New Folder</button>
         </div>
+        <div id="folder-tree">
+        </div>
     </aside>
 
     <main class="flashcards-main">
@@ -24,18 +26,15 @@
             </div>
         </div>
 
+        <nav id="breadcrumbs" aria-label="breadcrumb"></nav>
+
+        <div id="items-container" class="items-grid">
+        </div>
+
         <!-- Mobile-only view switcher -->
         <div class="mobile-view-switcher">
             <button class="view-switch-btn active" data-view="items">Items</button>
             <button class="view-switch-btn" data-view="folders">My Collection</button>
-        </div>
-
-        <nav id="breadcrumbs" aria-label="breadcrumb"></nav>
-
-        <div id="folder-tree">
-        </div>
-
-        <div id="items-container" class="items-grid">
         </div>
     </main>
 </div>
@@ -44,6 +43,11 @@
 <button id="mobile-add-btn" class="fab" title="Create Flashcard">
     <span>+</span>
 </button>
+<div id="mobile-fab-menu" class="fab-menu">
+    <button class="fab-menu-item" id="fab-new-folder">New Folder</button>
+    <button class="fab-menu-item" id="fab-new-flashcard">New Flashcard</button>
+</div>
+
 
 <!-- Mobile Sticky Learn Button -->
 <div class="mobile-bottom-actions">
@@ -742,10 +746,25 @@ document.addEventListener('DOMContentLoaded', function() {
         learnModeBtn.click(); // Re-use the same logic as the desktop learn button
     });
 
-    newFlashcardBtn.addEventListener('click', () => {
-        createFlashcardModal.classList.add('visible');
+    newFlashcardBtn.addEventListener('click', () => createFlashcardModal.classList.add('visible'));
+
+    // FAB Menu Logic
+    const fabMenu = document.getElementById('mobile-fab-menu');
+    mobileAddBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fabMenu.classList.toggle('visible');
+        mobileAddBtn.classList.toggle('open');
     });
-    mobileAddBtn.addEventListener('click', () => {
+
+    document.getElementById('fab-new-folder').addEventListener('click', () => {
+        fabMenu.classList.remove('visible');
+        mobileAddBtn.classList.remove('open');
+        newFolderBtn.click(); // Trigger desktop new folder logic
+    });
+
+    document.getElementById('fab-new-flashcard').addEventListener('click', () => {
+        fabMenu.classList.remove('visible');
+        mobileAddBtn.classList.remove('open');
         createFlashcardModal.classList.add('visible');
     });
 
@@ -1027,6 +1046,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 card.classList.remove('menu-open');
                 card.querySelector('.item-menu-dropdown').classList.remove('visible');
             });
+
+            // Close FAB menu if open
+            const fabMenu = document.getElementById('mobile-fab-menu');
+            if (fabMenu.classList.contains('visible')) {
+                fabMenu.classList.remove('visible');
+                document.getElementById('mobile-add-btn').classList.remove('open');
+            }
         }
     });
 
