@@ -14,12 +14,7 @@
         <div class="logo">
             <span>IGCSE MockSplainer</span>
         </div>
-        <div class="nav">
-            <a href="/login" class="btn btn-primary">Login</a>
-        </div>
-        <button class="hamburger-menu" id="hamburger-menu">
-            &#9776;
-        </button>
+        <a href="/login" class="btn btn-ghost btn-sm landing-signin">Sign In</a>
     </div>
 
     <div class="scroll-wrapper">
@@ -263,13 +258,6 @@
     <!-- End of Footer -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const hamburger = document.getElementById('hamburger-menu');
-            const nav = document.querySelector('.nav');
-
-            hamburger.addEventListener('click', function() {
-                nav.classList.toggle('active');
-            });
-
             const featureTabs = document.querySelectorAll('.feature-tab');
             const featurePanels = document.querySelectorAll('.feature-panel');
             const tabIndicator = document.querySelector('.feature-tab-indicator');

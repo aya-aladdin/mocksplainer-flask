@@ -1521,6 +1521,11 @@ padding: 0 16px;
     max-width: 320px;
 }
 
+.landing-signin {
+    width: auto;
+    max-width: none;
+}
+
 .topbar {
     padding: 8px 16px;
 }
@@ -1657,6 +1662,12 @@ padding: 0 16px;
 .feature-box:hover::before, .feature-box:hover .feature-box-content, .feature-box:hover p, .feature-box:hover .feature-link {
     all: unset;
 }
+}
+.landing-signin {
+    color: var(--ink);
+    border-color: #d1d5db;
+    padding: 4px 10px;
+    font-size: 0.85rem;
 }
 
 @media (max-width: 480px) {
