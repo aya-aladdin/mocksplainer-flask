@@ -1010,12 +1010,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             viewSwitcher.querySelectorAll('.view-switch-btn').forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
-
+    
             const itemsView = document.getElementById('items-container');
             const foldersView = document.getElementById('folder-tree');
-
+            const sidebar = document.querySelector('.flashcards-sidebar');
+    
             itemsView.style.display = view === 'items' ? 'grid' : 'none';
             foldersView.style.display = view === 'folders' ? 'block' : 'none';
+            sidebar.style.display = view === 'folders' ? 'block' : 'none';
         }
     });
 
