@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 
 {% block title %}Test: {{ test.topic }}{% endblock %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='take_test.css') }}">{% endblock %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='take_test.css') }}">
+    <style>
+        .question-text { white-space: pre-wrap; }
+    </style>
+{% endblock %}
 
 {% block content %}
 <div class="container narrow">
@@ -112,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
             aiHelperMessages.innerHTML = '';
             conversationHistory = [];
 
-            const initialPrompt = `The user is asking for help with the following question: "${currentQuestionContext}". They have highlighted this part: "${selectedText}". Please explain the highlighted part in the context of the question.`;
+            const initialPrompt = `In the context of the question: "${currentQuestionContext}", please explain the following part I've highlighted: "${selectedText}"`;
             
             sendMessageToAI(initialPrompt, true);
         }

@@ -194,13 +194,13 @@ def generate_test_ai():
 
     try:
         system_prompt = r"""
-            "You are an expert exam paper creator for various curricula (IGCSE, A-Level, IB, GCSE). "
-            "Your task is to generate a mock test based on user specifications. "
-            "The generated questions should be appropriate for the specified curriculum level. "
-            "Each question must have a 'question_number', 'question_text' (in Markdown), 'marks', a 'model_answer' (a full, well-written answer), and an 'answer_text' (the mark scheme as a bulleted list). The sum of marks should be close to the requested total. "
-            "Respond ONLY with a valid JSON object. This JSON object must contain a single key 'questions', which is an array of question objects. "
-            "Crucially, ensure all double quotes within any string values are properly escaped with a backslash (e.g., \"). Also, ensure any literal backslashes in the text are escaped (e.g., a single backslash \ should be written as \\). "
-            "Example: {\"questions\": [{\"question_number\": 1, \"question_text\": \"Explain 'osmosis'.\", \"marks\": 2, \"model_answer\": \"Osmosis is the net movement of water molecules from an area of high water potential to an area of low water potential through a partially permeable membrane.\", \"answer_text\": \"- Net movement of water molecules [1]\\n- Through a partially permeable membrane [1]\"}]}"
+            You are an expert exam paper creator. Your task is to generate a mock test based on user specifications.
+            - Generate questions appropriate for the specified curriculum level.
+            - Each question must have a 'question_number', 'question_text', 'marks', a 'model_answer', and an 'answer_text' (mark scheme).
+            - For multiple-choice questions in 'question_text', use double spaces followed by a newline to ensure line breaks in Markdown.
+            - The sum of marks should be close to the requested total.
+            - Respond ONLY with a valid JSON object inside a ```json ... ``` markdown block.
+            - Example `question_text` for multiple choice: "Which of these is a gas?  \nA. Water  \nB. Air"
         """
         
         user_prompt = (
@@ -228,16 +228,27 @@ def generate_test_ai():
                 response_text = response.read().decode('utf-8')
                 ai_response_data = json.loads(response_text)
                 content = ai_response_data['choices'][0]['message']['content']
+                test_json_str = None
                 
-                # Robustly find and extract the JSON object from the AI's response
-                json_start = content.find('{')
-                json_end = content.rfind('}') + 1
+                # Attempt 1: Find JSON within a markdown block
+                match = re.search(r'```json\s*(\{.*?\})\s*```', content, re.DOTALL)
+                if match:
+                    test_json_str = match.group(1)
+                else:
+                    # Attempt 2: Find the first '{' and last '}'
+                    json_start = content.find('{')
+                    json_end = content.rfind('}') + 1
+                    if json_start != -1 and json_end != 0:
+                        test_json_str = content[json_start:json_end]
                 
-                if json_start == -1 or json_end == 0:
-                    raise ValueError(f"AI response did not contain a valid JSON object. Response: {content}")
+                if not test_json_str:
+                    raise ValueError(f"AI response did not contain a recognizable JSON object. Response: {content}")
 
-                test_json_str = content[json_start:json_end]
-
+                # Attempt to clean up common issues like trailing commas
+                test_json_str = re.sub(r',\s*([\}\]])', r'\1', test_json_str)
+                # Remove comments if any (though unlikely with this model)
+                test_json_str = re.sub(r'//.*?\n|/\*.*?\*/', '', test_json_str, flags=re.DOTALL)
+                
                 try:
                     # First attempt to parse the extracted JSON string
                     test_data = json.loads(test_json_str)
@@ -265,14 +276,11 @@ def generate_test_ai():
                             correction_ai_data = json.loads(correction_response_text)
                             corrected_content = correction_ai_data['choices'][0]['message']['content']
                             
-                            # The AI might still wrap the corrected JSON in markdown, so we extract it again.
-                            json_start_corr = corrected_content.find('{')
-                            json_end_corr = corrected_content.rfind('}') + 1
-                            
-                            if json_start_corr == -1 or json_end_corr == 0:
-                                raise ValueError(f"AI self-correction did not return a JSON object. Response: {corrected_content}")
-
-                            final_json_str = corrected_content[json_start_corr:json_end_corr]
+                            # The AI might still wrap the corrected JSON in markdown or text, so we extract it again.
+                            corr_match = re.search(r'\{.*\}', corrected_content, re.DOTALL)
+                            if not corr_match:
+                                raise ValueError(f"AI self-correction did not return a JSON object. Corrected Response: {corrected_content}")
+                            final_json_str = corr_match.group(0)
                             test_data = json.loads(final_json_str)
                         else:
                             raise ValueError("AI self-correction failed.")
@@ -498,10 +506,9 @@ def chat():
 
     try:
         system_content = (
-            "You are IGCSE TutorBot, an extremely helpful and strict assistant for students studying IGCSE "
-            "level content. Your responses must be concise, straightforward, and delivered as the final answer only. "
-            "Do not include any reasoning, thoughts, or conversational filler. "
-            "Your responses should be in Markdown format."
+            "You are a helpful and strict AI tutor. Your responses must be concise, straightforward, and in Markdown format. "
+            "Provide the final answer directly. Do not show your reasoning process, thoughts, or self-correction. "
+            "Do not use conversational filler like 'Of course!' or 'I can help with that.'"
         )
 
         api_messages = [{"role": "system", "content": system_content}] + messages
@@ -520,13 +527,7 @@ def chat():
                 response_data = json.loads(response.read().decode('utf-8'))
                 content = response_data['choices'][0]['message']['content']
 
-                think_end_tag = '</think>'
-                think_end_index = content.find(think_end_tag)
-                if think_end_index != -1:
-                    reply = content[think_end_index + len(think_end_tag):].strip()
-                else:
-                    reply = content.strip()
-
+                reply = content.strip()
                 return jsonify({"reply": reply})
             else:
                 error_body = response.read().decode('utf-8', errors='ignore')
