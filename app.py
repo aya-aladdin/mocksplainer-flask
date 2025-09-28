@@ -79,6 +79,9 @@ class TestQuestion(db.Model):
     answer_text = db.Column(db.Text, nullable=False)
     model_answer = db.Column(db.Text, nullable=True) # New field for the model answer
 
+with app.app_context():
+    db.create_all()
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -652,6 +655,4 @@ def flashcards():
 
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True, port=5001)
