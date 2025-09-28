@@ -15,7 +15,11 @@ IGCSE_INFO_TEXT = "The user is studying IGCSE level content in Math, Physics, Bi
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'SNSnT_LoJM8ejQ1GFtSJCdcrQJCg1NInP5Klbp68Rqs'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/igcse_study.sqlite3'
+# For Vercel, use an in-memory SQLite database for quick testing,
+# but a managed database (like Vercel Postgres) is required for production.
+# The local file path '/tmp/...' is not persistent in a serverless environment.
+IS_VERCEL = os.environ.get('VERCEL') == '1'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:' if IS_VERCEL else 'sqlite:////tmp/igcse_study.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
