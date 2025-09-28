@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import dirtyjson
 from datetime import datetime
 import urllib.request
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
@@ -206,6 +207,7 @@ def generate_test_ai():
                 - Example mark scheme point: "- **Movement** of particles from high to low concentration [1]"
             - The sum of marks should be close to the requested total.
             - Respond ONLY with a single valid JSON object inside a ```json ... ``` markdown block.
+            - Do not include any reasoning, conversational text, or <think> tags in your response.
             - The JSON object must have a single root key called "questions", which contains an array of question objects.
         """
         
@@ -215,7 +217,7 @@ def generate_test_ai():
             f"- Subject: {subject}\n"
             f"- Topic: {topic}\n"
             f"- Number of Questions: {num_questions}\n"
-            f"- Approximate Total Marks: {total_marks}"
+            f"- Approximate Total Marks: {total_marks} (don't think)"
         )
 
         api_messages = [
@@ -234,55 +236,28 @@ def generate_test_ai():
                 response_text = response.read().decode('utf-8')
                 ai_response_data = json.loads(response_text)
                 content = ai_response_data['choices'][0]['message']['content']
-                
-                # --- Robust JSON Extraction and Cleaning ---
-                # 1. Find the JSON part, whether it's in a markdown block or not.
-                json_match = re.search(r'\{.*\}', content, re.DOTALL)
-                if not json_match:
-                    raise ValueError(f"AI response did not contain a JSON object. Response: {content}")
-                
-                test_json_str = json_match.group(0)
-                
-                # 2. Clean common syntax errors like trailing commas.
-                test_json_str = re.sub(r',\s*([\}\]])', r'\1', test_json_str) 
-                
+
                 try:
-                    # 3. Attempt to parse the cleaned JSON.
-                    test_data = json.loads(test_json_str)
-                except json.JSONDecodeError as e:
-                    # 4. If parsing fails, trigger self-correction.
-                    print(f"Initial JSON parse failed: {e}. Attempting self-correction.")
+                    # Pre-process to remove any <think>...</think> blocks
+                    content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
+
+                    # 1. Extract the JSON part of the string to remove any leading/trailing text from the AI.
+                    json_match = re.search(r'\{.*\}', content, re.DOTALL)
+                    if not json_match:
+                        raise ValueError(f"No JSON object found in AI response. Content: {content}")
                     
-                    correction_prompt = (
-                        "The following text is invalid JSON. Fix it and return ONLY the valid JSON object. "
-                        "Do not include any other text, conversation, or markdown formatting. Just the raw, corrected JSON. "
-                        "The invalid text is:\n\n"
-                        f"{content}"
-                    )
+                    json_string = json_match.group(0)
                     
-                    correction_messages = [{"role": "user", "content": correction_prompt}]
-                    correction_req = urllib.request.Request(
-                        HACKCLUB_API_URL,
-                        data=json.dumps({"model": "gpt-4o-mini", "messages": correction_messages, "max_tokens": 2000}).encode('utf-8'),
-                        headers={'Content-Type': 'application/json'}
-                    )
-                    
-                    with urllib.request.urlopen(correction_req) as correction_response:
-                        if correction_response.status == 200:
-                            correction_response_text = correction_response.read().decode('utf-8')
-                            correction_ai_data = json.loads(correction_response_text)
-                            corrected_content = correction_ai_data['choices'][0]['message']['content']
-                            
-                            # Re-run the extraction on the corrected content.
-                            corr_match = re.search(r'\{.*\}', corrected_content, re.DOTALL)
-                            if not corr_match:
-                                raise ValueError(f"AI self-correction did not return a JSON object. Corrected Response: {corrected_content}")
-                            final_json_str = corr_match.group(0)
-                            test_data = json.loads(final_json_str)
-                        else:
-                            raise ValueError("AI self-correction failed.")
+                    # 2. Use dirtyjson to parse the extracted, potentially malformed JSON.
+                    test_data = dirtyjson.loads(json_string)
+                except Exception as e:
+                    print(f"AI Test Generation Error: Failed to parse AI response. Error: {e}")
+                    raise ValueError(f"Could not parse the AI's response. Raw content: {content}")
 
                 questions_data = test_data.get('questions', [])
+
+                if not questions_data:
+                    raise ValueError("AI returned a valid response but with no questions in it.")
 
                 new_test = MockTest(user_id=current_user.id, topic=topic)
                 db.session.add(new_test)
