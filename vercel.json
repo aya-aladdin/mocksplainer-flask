@@ -1,8 +1,8 @@
 {
-    "functions": {
-        "app.py": {
-            "runtime": "vercel-python@3.0.0"
-        }
-    },
-    "rewrites": [{ "source": "/(.*)", "destination": "/app.py" }]
+  "builds": [
+    {
+      "src": "app.py",
+      "use": "@vercel/python"
+    }
+  ]
 }
