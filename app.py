@@ -507,16 +507,19 @@ def chat():
     if not messages:
         return jsonify({"reply": "⚠️ No message provided."})
 
-    user_message = messages[-1].get("content", "").strip()
-
     try:
         system_content = (
-            "You are a helpful and strict AI tutor. Your responses must be concise, straightforward, and in Markdown format. "
-            "Provide the final answer directly. Do not show your reasoning process, thoughts, or self-correction. "
-            "Do not use conversational filler like 'Of course!' or 'I can help with that.'"
+            "You are a helpful and strict AI tutor. You are speaking directly to the user. "
+            "Your responses must be concise, straightforward, and in Markdown format. "
+            "Provide the final answer directly. DO NOT show your reasoning process, thoughts, or self-correction. Never refer to the user in the third person (e.g., 'the user is asking')."
         )
 
-        api_messages = [{"role": "system", "content": system_content}] + messages
+        # Modify the last user message to include the instruction
+        modified_messages = messages.copy()
+        if modified_messages:
+            modified_messages[-1]['content'] += " (don't think)"
+
+        api_messages = [{"role": "system", "content": system_content}] + modified_messages
         
         req = urllib.request.Request(
             HACKCLUB_API_URL,
