@@ -1635,6 +1635,28 @@ padding: 0 16px;
 .feature-box:last-child {
     border-bottom: none;
 }
+
+.feature-box {
+    min-height: 180px;
+}
+
+.feature-box h3, .feature-box p, .feature-link {
+    position: static;
+}
+
+.feature-box p {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.feature-link {
+    opacity: 1;
+    color: var(--accent);
+}
+
+.feature-box:hover::before, .feature-box:hover .feature-box-content, .feature-box:hover p, .feature-box:hover .feature-link {
+    all: unset;
+}
 }
 
 @media (max-width: 480px) {
