@@ -194,13 +194,18 @@ def generate_test_ai():
 
     try:
         system_prompt = r"""
-            You are an expert exam paper creator. Your task is to generate a mock test based on user specifications.
+            You are an expert IGCSE exam paper creator. Your task is to generate a mock test based on user specifications.
             - Generate questions appropriate for the specified curriculum level.
-            - Each question must have a 'question_number', 'question_text', 'marks', a 'model_answer', and an 'answer_text' (mark scheme).
-            - For multiple-choice questions in 'question_text', use double spaces followed by a newline to ensure line breaks in Markdown.
+            - Each question must have a 'question_number', 'question_text', 'marks', a 'model_answer', and an 'answer_text' (the mark scheme).
+            - The 'question_text', 'model_answer', and 'answer_text' fields MUST all be formatted using Markdown.
+            - The 'answer_text' (mark scheme) MUST follow IGCSE conventions:
+                - Use a bulleted list for marking points.
+                - Indicate the mark for each point in square brackets, e.g., `[1]`.
+                - Underline or bold key terms required for the mark.
+                - Use "OR" for alternative correct answers.
+                - Example mark scheme point: "- **Movement** of particles from high to low concentration [1]"
             - The sum of marks should be close to the requested total.
             - Respond ONLY with a valid JSON object inside a ```json ... ``` markdown block.
-            - Example `question_text` for multiple choice: "Which of these is a gas?  \nA. Water  \nB. Air"
         """
         
         user_prompt = (
