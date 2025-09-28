@@ -665,21 +665,22 @@ opacity: 1;
 }
 
 .full-width-section {
+background-color: #f7f4f4;
+padding-top: 4rem;
+padding-bottom: 4rem;
 border-top: 2px solid var(--border);
 border-bottom: 2px solid var(--border);
-background-color: #f7f4f4;
-padding: 4rem 0;
 }
 
 .study-showcase-title {
-max-width: 1300px;
-margin-left: auto;
-margin-right: auto;
-padding: 0 8px;
 margin-bottom: 2rem;
+text-align: center;
 }
 
 .study-showcase {
+}
+
+.study-showcase-inner {
 display: grid;
 grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 gap: 0;
@@ -724,7 +725,7 @@ color: var(--ink);
 }
 
 .study-accordion {
-border-right: 2px solid var(--border);
+border-left: 2px solid var(--border);
 display: flex;
 flex-direction: column;
 justify-content: center;

@@ -99,45 +99,43 @@
     </div>
 
     <div class="full-width-section">
+        <h2 class="section-title study-showcase-title">What are you studying?</h2>
         <div class="study-showcase">
-            <div class="container">
-                <div class="study-showcase-content">
-                    <div class="study-accordion">
-                        <h2 class="section-title study-showcase-title">What are you studying?</h2>
-                        <div class="accordion-item active">
-                            <button class="accordion-header" data-image="/static/img/blue.png">
-                                <h3>IGCSE</h3>
-                                <span class="accordion-toggle-icon">+</span>
-                            </button>
-                            <div class="accordion-content">
-                                <p>Comprehensive resources tailored specifically for the IGCSE curriculum, ensuring you cover every topic in depth.</p>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <button class="accordion-header" data-image="/static/img/pink.png">
-                                <h3>A-Level</h3>
-                                <span class="accordion-toggle-icon">+</span>
-                            </button>
-                            <div class="accordion-content">
-                                <p>Master advanced concepts with our expert-written guides and exam-style questions for your A-Level subjects.</p>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <button class="accordion-header" data-image="/static/img/yellow.png">
-                                <h3>IB (International Baccalaureate)</h3>
-                                <span class="accordion-toggle-icon">+</span>
-                            </button>
-                            <div class="accordion-content">
-                                <p>Navigate the IB Diploma Programme with confidence using our specialized notes, flashcards, and mock tests.</p>
-                            </div>
+            <div class="study-showcase-inner">
+                <div class="study-image-pane-full">
+                    <img src="/static/img/blue.png" alt="Curriculum feature image" class="showcase-img active">
+                    <img src="/static/img/pink.png" alt="Curriculum feature image" class="showcase-img">
+                    <img src="/static/img/yellow.png" alt="Curriculum feature image" class="showcase-img">
+                </div>
+                <div class="study-accordion">
+                    <div class="accordion-item active">
+                        <button class="accordion-header" data-image="/static/img/blue.png">
+                            <h3>IGCSE</h3>
+                            <span class="accordion-toggle-icon">+</span>
+                        </button>
+                        <div class="accordion-content">
+                            <p>Comprehensive resources tailored specifically for the IGCSE curriculum, ensuring you cover every topic in depth.</p>
                         </div>
                     </div>
-                    <div class="study-image-pane-placeholder"></div>
+                    <div class="accordion-item">
+                        <button class="accordion-header" data-image="/static/img/pink.png">
+                            <h3>A-Level</h3>
+                            <span class="accordion-toggle-icon">+</span>
+                        </button>
+                        <div class="accordion-content">
+                            <p>Master advanced concepts with our expert-written guides and exam-style questions for your A-Level subjects.</p>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <button class="accordion-header" data-image="/static/img/yellow.png">
+                            <h3>IB (International Baccalaureate)</h3>
+                            <span class="accordion-toggle-icon">+</span>
+                        </button>
+                        <div class="accordion-content">
+                            <p>Navigate the IB Diploma Programme with confidence using our specialized notes, flashcards, and mock tests.</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="study-image-pane-full">
-                <img src="/static/img/blue.png" alt="Curriculum feature image" class="showcase-img active">
-                <img src="" alt="Curriculum feature image" class="showcase-img">
             </div>
         </div>
     </div>
@@ -343,14 +341,14 @@
         const accordionItems = document.querySelectorAll('.accordion-item');
         const showcaseImages = document.querySelectorAll('.study-image-pane-full .showcase-img');
 
-        accordionItems.forEach(item => {
+        accordionItems.forEach((item, index) => {
             const header = item.querySelector('.accordion-header');
             header.addEventListener('click', () => {
                 // Don't do anything if it's already active
                 if (item.classList.contains('active')) {
                     return;
                 }
-
+        
                 accordionItems.forEach(otherItem => {
                     otherItem.classList.remove('active');
                 });
