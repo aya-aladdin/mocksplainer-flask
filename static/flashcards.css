@@ -506,7 +506,7 @@ padding: 0;
 }
 
 /* --- Mobile Specific --- */
-.fab, .mobile-view-switcher, .mobile-bottom-actions {
+.fab-container, .mobile-view-switcher, .mobile-bottom-actions {
     display: none;
 }
 
@@ -554,13 +554,18 @@ padding: 0;
         display: none;
     }
 
+    .fab-container {
+        display: block; /* Show the container on mobile */
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        z-index: 1000;
+    }
+
     .fab {
         display: flex;
         align-items: center;
         justify-content: center;
-        position: fixed;
-        bottom: 90px;
-        right: 20px;
         width: 56px;
         height: 56px;
         background-color: var(--accent);
@@ -569,8 +574,52 @@ padding: 0;
         border: none;
         box-shadow: var(--shadow-lg);
         font-size: 28px;
-        z-index: 1000;
         cursor: pointer;
+        transition: transform 0.3s ease;
+        position: relative; /* For stacking context */
+        z-index: 1001;
+    }
+
+    .fab-container.open .fab {
+        transform: rotate(45deg);
+    }
+
+    .fab-actions {
+        position: absolute;
+        bottom: 100%; /* Position above the FAB */
+        right: 4px; /* Align with the main FAB */
+        margin-bottom: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px);
+        transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+    }
+
+    .fab-container.open .fab-actions {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .fab-action-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: none;
+        background-color: var(--panel);
+        color: var(--ink);
+        box-shadow: var(--shadow-md);
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .fab-action-btn:hover {
+        transform: scale(1.1);
     }
 
     .mobile-bottom-actions {

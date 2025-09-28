@@ -40,9 +40,13 @@
 </div>
 
 <!-- Mobile Floating Action Button -->
-<button id="mobile-add-btn" class="fab" title="Create Flashcard">
-    <span>+</span>
-</button>
+<div class="fab-container">
+    <div class="fab-actions">
+        <button id="fab-new-folder" class="fab-action-btn" title="New Folder">📁</button>
+        <button id="fab-new-flashcard" class="fab-action-btn" title="New Flashcard">📄</button>
+    </div>
+    <button id="mobile-add-btn" class="fab" title="Create"><span>+</span></button>
+</div>
 
 <!-- Mobile Sticky Learn Button -->
 <div class="mobile-bottom-actions">
@@ -182,7 +186,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelSelectionBtn = document.getElementById('cancel-selection-btn');
     const learnModeBtn = document.getElementById('learn-mode-btn'); 
     const selectLearnFoldersModal = document.getElementById('select-learn-folders-modal');
-    const mobileAddBtn = document.getElementById('mobile-add-btn');
     const mobileLearnBtn = document.getElementById('mobile-learn-btn');
     const startLearnSessionBtn = document.getElementById('start-learn-session-btn');
 
@@ -744,8 +747,21 @@ document.addEventListener('DOMContentLoaded', function() {
     newFlashcardBtn.addEventListener('click', () => {
         createFlashcardModal.classList.add('visible');
     });
+
+    // --- Mobile FAB (Speed Dial) Logic ---
+    const fabContainer = document.querySelector('.fab-container');
+    const mobileAddBtn = document.getElementById('mobile-add-btn');
+    const fabNewFlashcardBtn = document.getElementById('fab-new-flashcard');
+    const fabNewFolderBtn = document.getElementById('fab-new-folder');
+
     mobileAddBtn.addEventListener('click', () => {
-        createFlashcardModal.classList.add('visible');
+        fabContainer.classList.toggle('open');
+    });
+    fabNewFlashcardBtn.addEventListener('click', () => {
+        newFlashcardBtn.click(); // Reuse desktop logic
+    });
+    fabNewFolderBtn.addEventListener('click', () => {
+        newFolderBtn.click(); // Reuse desktop logic
     });
 
     cancelLearnSelectionBtn.addEventListener('click', () => {
