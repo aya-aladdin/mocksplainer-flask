@@ -10,6 +10,8 @@
             <h3>My Collection</h3>
             <button class="btn btn-ghost btn-sm" id="new-folder-btn">+ New Folder</button>
         </div>
+        <div id="folder-tree">
+        </div>
     </aside>
 
     <main class="flashcards-main">
@@ -33,8 +35,6 @@
         <nav id="breadcrumbs" aria-label="breadcrumb"></nav>
 
         <div id="items-container" class="items-grid">
-        </div>
-        <div id="folder-tree" style="display: none;">
         </div>
     </main>
 </div>
@@ -1016,6 +1016,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
             itemsView.style.display = view === 'items' ? 'grid' : 'none';
             foldersView.style.display = view === 'folders' ? 'block' : 'none';
+            sidebar.style.display = view === 'folders' ? 'block' : 'none';
         }
     });
 

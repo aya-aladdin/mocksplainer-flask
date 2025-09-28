@@ -554,11 +554,6 @@ padding: 0;
         display: none;
     }
 
-    /* Hide folder tree by default on mobile, as 'Items' is the default view */
-    #folder-tree {
-        display: none;
-    }
-
     .fab {
         display: flex;
         align-items: center;
