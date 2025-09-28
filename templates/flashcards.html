@@ -10,8 +10,6 @@
             <h3>My Collection</h3>
             <button class="btn btn-ghost btn-sm" id="new-folder-btn">+ New Folder</button>
         </div>
-        <div id="folder-tree">
-        </div>
     </aside>
 
     <main class="flashcards-main">
@@ -33,6 +31,9 @@
         </div>
 
         <nav id="breadcrumbs" aria-label="breadcrumb"></nav>
+
+        <div id="folder-tree">
+        </div>
 
         <div id="items-container" class="items-grid">
         </div>
@@ -284,14 +285,15 @@ document.addEventListener('DOMContentLoaded', function() {
         folders.forEach(folder => {
             const li = document.createElement('li');
             const label = document.createElement('label');
-            const radio = document.createElement('input');
-            radio.type = 'radio';
-            radio.name = 'learn-folder-selection'; // Group radio buttons
-            radio.value = folder.id;
-            radio.id = `learn-radio-${folder.id}`;
-
-            label.appendChild(radio);
-            label.insertAdjacentHTML('beforeend', ` <span class="folder-icon">${folder.icon}</span> ${folder.name}`);
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = folder.id;
+            checkbox.id = `learn-check-${folder.id}`;
+            
+            label.setAttribute('for', checkbox.id);
+            label.innerHTML = `<span class="folder-icon">${folder.icon}</span> ${folder.name}`;
+            
+            li.appendChild(checkbox);
             li.appendChild(label);
 
             if (folder.subfolders && folder.subfolders.length > 0) {
@@ -375,13 +377,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             itemsContainerEl.appendChild(flashcardEl);
-        });
-
-        renderMathInElement(itemsContainerEl, {
-            delimiters: [
-                {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false},
-            ]
         });
     }
 
@@ -763,13 +758,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     startLearnSessionBtn.addEventListener('click', async () => {
-        const selectedRadio = document.querySelector('#select-learn-folders-tree input[type="radio"]:checked');
+        const selectedCheckboxes = document.querySelectorAll('#select-learn-folders-tree input[type="checkbox"]:checked');
+        const folderIds = Array.from(selectedCheckboxes).map(cb => cb.value);
 
-        if (!selectedRadio) {
-            alert('Please select a folder to learn.');
+        if (folderIds.length === 0) {
+            alert('Please select at least one folder to learn.');
             return;
         }
-        const folderIds = [selectedRadio.value];
 
         try {
             const response = await fetch('{{ url_for("get_learn_session_flashcards") }}', {
@@ -805,19 +800,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const card = learnSession.flashcards[learnSession.currentIndex];
-        const questionEl = document.getElementById('learn-question');
-        const answerEl = document.getElementById('learn-answer');
-        
-        questionEl.innerHTML = card.question;
-        answerEl.innerHTML = card.answer;
-
-        renderMathInElement(learnModeModal, {
-            delimiters: [
-                {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false},
-            ]
-        });
-
+        document.getElementById('learn-question').textContent = card.question;
+        document.getElementById('learn-answer').textContent = card.answer;
         document.getElementById('learn-progress').textContent = `${learnSession.currentIndex + 1} / ${learnSession.flashcards.length}`;
         
         learnModeModal.querySelector('.learn-modal-content').classList.remove('flipped');
@@ -1027,11 +1011,11 @@ document.addEventListener('DOMContentLoaded', function() {
             viewSwitcher.querySelectorAll('.view-switch-btn').forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
 
-            const mainContent = document.querySelector('.flashcards-main');
-            const sidebar = document.querySelector('.flashcards-sidebar');
+            const itemsView = document.getElementById('items-container');
+            const foldersView = document.getElementById('folder-tree');
 
-            mainContent.style.display = view === 'items' ? 'block' : 'none';
-            sidebar.style.display = view === 'folders' ? 'block' : 'none';
+            itemsView.style.display = view === 'items' ? 'grid' : 'none';
+            foldersView.style.display = view === 'folders' ? 'block' : 'none';
         }
     });
 
