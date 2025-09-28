@@ -205,7 +205,8 @@ def generate_test_ai():
                 - Use "OR" for alternative correct answers.
                 - Example mark scheme point: "- **Movement** of particles from high to low concentration [1]"
             - The sum of marks should be close to the requested total.
-            - Respond ONLY with a valid JSON object inside a ```json ... ``` markdown block.
+            - Respond ONLY with a single valid JSON object inside a ```json ... ``` markdown block.
+            - The JSON object must have a single root key called "questions", which contains an array of question objects.
         """
         
         user_prompt = (
@@ -233,55 +234,46 @@ def generate_test_ai():
                 response_text = response.read().decode('utf-8')
                 ai_response_data = json.loads(response_text)
                 content = ai_response_data['choices'][0]['message']['content']
-                test_json_str = None
                 
-                # Attempt 1: Find JSON within a markdown block
-                match = re.search(r'```json\s*(\{.*?\})\s*```', content, re.DOTALL)
-                if match:
-                    test_json_str = match.group(1)
-                else:
-                    # Attempt 2: Find the first '{' and last '}'
-                    json_start = content.find('{')
-                    json_end = content.rfind('}') + 1
-                    if json_start != -1 and json_end != 0:
-                        test_json_str = content[json_start:json_end]
+                # --- Robust JSON Extraction and Cleaning ---
+                # 1. Find the JSON part, whether it's in a markdown block or not.
+                json_match = re.search(r'\{.*\}', content, re.DOTALL)
+                if not json_match:
+                    raise ValueError(f"AI response did not contain a JSON object. Response: {content}")
                 
-                if not test_json_str:
-                    raise ValueError(f"AI response did not contain a recognizable JSON object. Response: {content}")
-
-                # Attempt to clean up common issues like trailing commas
-                test_json_str = re.sub(r',\s*([\}\]])', r'\1', test_json_str)
-                # Remove comments if any (though unlikely with this model)
-                test_json_str = re.sub(r'//.*?\n|/\*.*?\*/', '', test_json_str, flags=re.DOTALL)
+                test_json_str = json_match.group(0)
+                
+                # 2. Clean common syntax errors like trailing commas.
+                test_json_str = re.sub(r',\s*([\}\]])', r'\1', test_json_str) 
                 
                 try:
-                    # First attempt to parse the extracted JSON string
+                    # 3. Attempt to parse the cleaned JSON.
                     test_data = json.loads(test_json_str)
                 except json.JSONDecodeError as e:
-                    # If parsing fails, ask the AI to fix its own output
+                    # 4. If parsing fails, trigger self-correction.
                     print(f"Initial JSON parse failed: {e}. Attempting self-correction.")
                     
                     correction_prompt = (
-                        "The following text is not valid JSON. Please fix it and return only the corrected, valid JSON object. "
-                        "Do not add any commentary or markdown. The text to fix is:\n\n"
-                        f"{test_json_str}"
+                        "The following text is invalid JSON. Fix it and return ONLY the valid JSON object. "
+                        "Do not include any other text, conversation, or markdown formatting. Just the raw, corrected JSON. "
+                        "The invalid text is:\n\n"
+                        f"{content}"
                     )
                     
                     correction_messages = [{"role": "user", "content": correction_prompt}]
-                    
                     correction_req = urllib.request.Request(
                         HACKCLUB_API_URL,
                         data=json.dumps({"model": "gpt-4o-mini", "messages": correction_messages, "max_tokens": 2000}).encode('utf-8'),
                         headers={'Content-Type': 'application/json'}
                     )
-
+                    
                     with urllib.request.urlopen(correction_req) as correction_response:
                         if correction_response.status == 200:
                             correction_response_text = correction_response.read().decode('utf-8')
                             correction_ai_data = json.loads(correction_response_text)
                             corrected_content = correction_ai_data['choices'][0]['message']['content']
                             
-                            # The AI might still wrap the corrected JSON in markdown or text, so we extract it again.
+                            # Re-run the extraction on the corrected content.
                             corr_match = re.search(r'\{.*\}', corrected_content, re.DOTALL)
                             if not corr_match:
                                 raise ValueError(f"AI self-correction did not return a JSON object. Corrected Response: {corrected_content}")
