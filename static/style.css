@@ -1605,9 +1605,20 @@ padding: 0 16px;
     flex-grow: 1;
 }
 
-.study-showcase {
+.study-showcase-inner {
     grid-template-columns: 1fr;
     gap: 2rem;
+    max-width: 100%;
+    border-left: none;
+    border-right: none;
+}
+
+.study-accordion {
+    border-left: none;
+}
+
+.study-image-pane-full {
+    min-height: 200px;
 }
 /* Feature Grid Stacking on Mobile/Tablet */
 .features-grid {
