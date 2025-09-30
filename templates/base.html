@@ -18,8 +18,6 @@
             <a class="nav-link" href="{{ url_for('chatbot') }}">Chatbot Tutor</a>
             <a class="nav-link" href="{{ url_for('flashcards') }}">My Flashcards</a>
             <a class="nav-link" href="{{ url_for('tests') }}">Tests</a>
-            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-            <a class="nav-link" href="{{ url_for('register') }}">Register</a>
         </nav>
         <button class="hamburger-menu" id="hamburger-menu">
             &#9776;
@@ -50,28 +48,17 @@
                         <h4 class="footer-heading">Home</h4>
                         <ul>
                             <li><a href="{{ url_for('index') }}">Home</a></li>
-                            <li><a href="{{ url_for('register') }}">Resources</a></li>
+                        <li><a href="{{ url_for('flashcards') }}">Resources</a></li>
                         </ul>
                     </div>
 
                     <div>
                         <h4 class="footer-heading">Resources</h4>
                         <ul>
-                            <li><a href="{{ url_for('register') }}">Learning Hub</a></li>
-                            <li><a href="{{ url_for('register') }}">Teachers</a></li>
-                            <li><a href="{{ url_for('register') }}">Ambassadors</a></li>
-                            <li><a href="{{ url_for('register') }}">Scholarship</a></li>
-                            <li><a href="{{ url_for('register') }}">Join</a></li>
-                            <li><a href="{{ url_for('register') }}">Past Papers</a></li>
-                            <li><a href="{{ url_for('register') }}">Solution Banks</a></li>
+                        <li><a href="{{ url_for('chatbot') }}">AI Tutor</a></li>
+                        <li><a href="{{ url_for('flashcards') }}">Flashcards</a></li>
+                        <li><a href="{{ url_for('tests') }}">Mock Tests</a></li>
                             <li><a href="{{ url_for('index') }}">Sitemap</a></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h4 class="footer-heading">Members</h4>
-                        <ul>
-                            <li><a href="{{ url_for('login') }}">Log in</a></li>
                         </ul>
                     </div>
 
@@ -93,10 +80,10 @@
                     <div>
                         <h4 class="footer-heading">Subjects</h4>
                         <ul>
-                            <li><a href="{{ url_for('register') }}">Biology</a></li>
-                            <li><a href="{{ url_for('register') }}">Chemistry</a></li>
-                            <li><a href="{{ url_for('register') }}">Physics</a></li>
-                            <li><a href="{{ url_for('register') }}">Maths</a></li>
+                        <li><a href="#">Biology</a></li>
+                        <li><a href="#">Chemistry</a></li>
+                        <li><a href="#">Physics</a></li>
+                        <li><a href="#">Maths</a></li>
                         </ul>
                     </div>
 
