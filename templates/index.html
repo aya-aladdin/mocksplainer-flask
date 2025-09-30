@@ -12,18 +12,22 @@
 
     <div class="topbar">
         <div class="logo">
-            <span>IGCSE MockSplainer</span>
+            <span class="logo-full">IGCSE MockSplainer</span>
+            <span class="logo-mobile">MockSplainer</span>
         </div>
-        <nav class="nav">
+        <nav class="nav" id="landing-nav">
             <div class="nav-dropdown">
                 <button class="btn btn-primary dropdown-toggle">Start Studying <span>&#9662;</span></button>
-                <ul class="dropdown-menu">
+                <ul class="dropdown-menu" id="landing-dropdown-menu">
                     <li><a href="{{ url_for('chatbot') }}" class="dropdown-item">AI Tutor</a></li>
                     <li><a href="{{ url_for('flashcards') }}" class="dropdown-item">Flashcards</a></li>
                     <li><a href="{{ url_for('tests') }}" class="dropdown-item">Mock Tests</a></li>
                 </ul>
             </div>
         </nav>
+        <button class="hamburger-menu" id="landing-hamburger-menu">
+            &#9776;
+        </button>
     </div>
 
     <div class="scroll-wrapper">
@@ -404,6 +408,15 @@
         // Wait for other DOM content to be ready, then start typing
         if (typewriterTextEl) {
             setTimeout(type, 500);
+        }
+
+        // Hamburger menu for landing page
+        const landingHamburger = document.getElementById('landing-hamburger-menu');
+        if (landingHamburger) {
+            const landingNav = document.getElementById('landing-nav');
+            landingHamburger.addEventListener('click', () => {
+                landingNav.classList.toggle('active');
+            });
         }
     </script>
 </body>

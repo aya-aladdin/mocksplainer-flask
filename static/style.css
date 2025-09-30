@@ -64,9 +64,10 @@ top: 0;
 z-index: 50;
 display: flex;
 align-items: center;
-justify-content: space-between;
+justify-content: flex-start;
 padding: 6px 20px;
 background: rgba(255, 255, 255, .7);
+gap: 20px;
 backdrop-filter: saturate(1.2) blur(10px);
 /* Used CSS variable for border color */
 border-bottom: 1px solid var(--border);
@@ -85,9 +86,14 @@ color: var(--ink);
 letter-spacing: .5px;
 }
 
+.logo-mobile {
+    display: none;
+}
+
 .nav {
 display: flex;
 gap: 14px;
+margin-left: auto;
 align-items: center;
 }
 
@@ -1559,8 +1565,15 @@ padding: 0 16px;
     max-width: none;
 }
 
+.topbar .btn {
+    width: auto;
+    max-width: none;
+}
+
 .topbar {
+    justify-content: space-between;
     padding: 8px 16px;
+    gap: 0;
 }
 
 .nav {
@@ -1570,6 +1583,14 @@ padding: 0 16px;
 .nav a, .dropdown-toggle {
     padding: 6px 8px;
 }
+.logo-full {
+    display: none;
+}
+
+.logo-mobile {
+    display: inline;
+}
+
 
 .prompt-suggestions {
     grid-template-columns: 1fr;
@@ -1773,6 +1794,46 @@ font-size: 38px;
 
 .hamburger-menu {
     display: block;
+}
+
+.topbar .dropdown-toggle {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+}
+
+/* Landing page hamburger menu specifics */
+#landing-hamburger-menu {
+    display: none; /* Hidden by default */
+}
+
+@media (max-width: 768px) {
+    #landing-hamburger-menu {
+        display: block; /* Show hamburger on mobile */
+    }
+
+    #landing-nav .nav-dropdown {
+        display: none; /* Hide the "Start Studying" button */
+    }
+
+    #landing-nav.active .nav-dropdown {
+        display: block; /* Show dropdown when nav is active */
+        position: static;
+    }
+
+    #landing-nav.active #landing-dropdown-menu {
+        display: block;
+        position: static;
+        width: 100%;
+        box-shadow: none;
+        border: none;
+        background: transparent;
+        padding: 0;
+        margin-top: 1rem;
+    }
+
+    #landing-nav.active .dropdown-item {
+        text-align: center;
+    }
 }
 }
 
