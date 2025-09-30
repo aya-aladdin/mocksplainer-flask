@@ -918,8 +918,6 @@ box-shadow: none;
 width: 100%;
 display: flex;
 flex-direction: column;
-/* Adjusted height calculation for better stability */
-height: calc(100vh - 61px - 5rem);
 border: none;
 overflow: hidden;
 background: transparent;
@@ -1716,6 +1714,36 @@ padding: 0 16px;
 .feature-box:hover::before, .feature-box:hover .feature-box-content, .feature-box:hover p, .feature-box:hover .feature-link {
     all: unset;
 }
+}
+
+@media (max-width: 992px) {
+    /* Feature Grid Stacking on Mobile/Tablet */
+    .features-grid {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+    .feature-box:first-child {
+        border-bottom: 1px solid var(--border);
+    }
+    .feature-box {
+        border-left: none;
+        border-bottom: 1px solid var(--border);
+    }
+    .feature-box:last-child {
+        border-bottom: none;
+    }
+
+    .feature-box {
+        min-height: 180px;
+    }
+
+    .feature-box h3, .feature-box p, .feature-link {
+        position: static;
+    }
+
+    .feature-box:hover::before, .feature-box:hover .feature-box-content, .feature-box:hover p, .feature-box:hover .feature-link {
+        all: unset;
+    }
 }
 .landing-signin {
     color: var(--ink);

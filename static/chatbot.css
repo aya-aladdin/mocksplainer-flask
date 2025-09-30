@@ -89,7 +89,7 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 61px - 6rem); /* Full height minus header and padding */
+    height: calc(100vh - 61px - 4rem); /* Full height minus topbar and main content padding */
     border: none;
     overflow: hidden;
     background: transparent;
