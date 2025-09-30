@@ -11,7 +11,7 @@
             <!-- Gemini-style Welcome Screen -->
             <div id="chat-welcome-screen">
                 <div class="welcome-header">
-                    <h1 class="gradient-text">Hello, {{ current_user.username }}</h1>
+                    <h1 class="gradient-text">Hello, Student</h1>
                     <h2>How can I help you today?</h2>
                 </div>
                 <div class="prompt-suggestions">
@@ -72,7 +72,7 @@
                 // Use marked.js to parse markdown for bot messages
                 messageElement.innerHTML = avatar + '<div class="message-content">' + marked.parse(text) + '</div>'; 
             } else {
-                const avatar = '<div class="user-avatar">{{ current_user.username[0] | upper }}</div>';
+                const avatar = '<div class="user-avatar">G</div>';
                 // For user messages, display plain text only
                 const messageContent = document.createElement('div');
                 messageContent.className = 'message-content';

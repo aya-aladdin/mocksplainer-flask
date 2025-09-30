@@ -93,7 +93,6 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 @app.route('/save_flashcards', methods=['POST'])
-@login_required
 def save_flashcards():
     try:
         data = request.get_json()
@@ -105,7 +104,7 @@ def save_flashcards():
         new_flashcards = []
         for fc in flashcards_data:
             new_flashcard = Flashcard(
-                user_id=current_user.id,
+                user_id=1, # Hardcoded user ID
                 topic=fc.get('topic', 'Unassigned'),
                 question=fc.get('question'),
                 answer=fc.get('answer'),
@@ -123,7 +122,6 @@ def save_flashcards():
         return jsonify({'error': 'Failed to save flashcards due to a server error.'}), 500
 
 @app.route('/generate_flashcards_ai', methods=['POST'])
-@login_required
 def generate_flashcards_ai():
     data = request.json
     text = data.get('text', '').strip()
@@ -170,7 +168,6 @@ def generate_flashcards_ai():
         return jsonify({'error': 'An error occurred while generating flashcards.'}), 500
 
 @app.route('/create_folder', methods=['POST'])
-@login_required
 def create_folder():
     data = request.json
     name = data.get('name', '').strip()
@@ -180,7 +177,7 @@ def create_folder():
         return jsonify({'error': 'Folder name cannot be empty.'}), 400
 
     try:
-        new_folder = Folder(name=name, user_id=current_user.id, parent_id=parent_id)
+        new_folder = Folder(name=name, user_id=1, parent_id=parent_id) # Hardcoded user ID
         db.session.add(new_folder)
         db.session.commit()
         return jsonify({'id': new_folder.id, 'name': new_folder.name, 'parent_id': new_folder.parent_id})
@@ -190,7 +187,6 @@ def create_folder():
         return jsonify({'error': 'Failed to create folder.'}), 500
 
 @app.route('/generate_test_ai', methods=['POST'])
-@login_required
 def generate_test_ai():
     data = request.json
     exam_board = data.get('exam_board', 'IGCSE').strip()
@@ -268,7 +264,7 @@ def generate_test_ai():
                 if not questions_data:
                     raise ValueError("AI returned a valid response but with no questions in it.")
 
-                new_test = MockTest(user_id=current_user.id, topic=topic)
+                new_test = MockTest(user_id=1, topic=topic) # Hardcoded user ID
                 db.session.add(new_test)
                 db.session.flush()
 
@@ -291,7 +287,6 @@ def generate_test_ai():
         return jsonify({'error': f'An error occurred while generating the test. The AI may have returned an invalid format. Details: {str(e)}'}), 500
 
 @app.route('/get_learn_session_flashcards', methods=['POST'])
-@login_required
 def get_learn_session_flashcards():
     data = request.json
     folder_ids = data.get('folder_ids', [])
@@ -300,7 +295,7 @@ def get_learn_session_flashcards():
     
     def fetch_flashcards_recursive(folder_id):
         folder = Folder.query.get(folder_id)
-        if not folder or folder.user_id != current_user.id:
+        if not folder or folder.user_id != 1: # Hardcoded user ID
             return
 
         for fc in folder.flashcards:
@@ -319,7 +314,6 @@ def get_learn_session_flashcards():
     return jsonify({'flashcards': unique_flashcards})
 
 @app.route('/record_learn_attempt', methods=['POST'])
-@login_required
 def record_learn_attempt():
     data = request.json
     flashcard_id = data.get('flashcard_id')
@@ -328,12 +322,11 @@ def record_learn_attempt():
     if flashcard_id is None or was_correct is None:
         return jsonify({'error': 'Missing data.'}), 400
 
-    attempt = FlashcardAttempt(user_id=current_user.id, flashcard_id=flashcard_id, was_correct=was_correct)
+    attempt = FlashcardAttempt(user_id=1, flashcard_id=flashcard_id, was_correct=was_correct) # Hardcoded user ID
     db.session.add(attempt)
     db.session.commit()
     return jsonify({'message': 'Attempt recorded.'})
 
-@login_required
 @app.route('/update_item', methods=['POST'])
 def update_item():
     data = request.json
@@ -345,12 +338,12 @@ def update_item():
     try:
         if item_type == 'folder':
             item = Folder.query.get(item_id)
-            if item and item.user_id == current_user.id:
+            if item and item.user_id == 1: # Hardcoded user ID
                 if new_name: item.name = new_name
                 if new_icon: item.icon = new_icon
         elif item_type == 'flashcard':
             item = Flashcard.query.get(item_id)
-            if item and item.owner.id == current_user.id:
+            if item and item.owner.id == 1: # Hardcoded user ID
                 if new_name: item.question = new_name
         
         db.session.commit()
@@ -360,7 +353,6 @@ def update_item():
         return jsonify({'error': 'Failed to update item.'}), 500
 
 @app.route('/delete_item', methods=['POST'])
-@login_required
 def delete_item():
     data = request.json
     item_id = data.get('item_id')
@@ -369,11 +361,11 @@ def delete_item():
     try:
         if item_type == 'flashcard':
             item = Flashcard.query.get(item_id)
-            if item and item.user_id == current_user.id:
+            if item and item.user_id == 1: # Hardcoded user ID
                 db.session.delete(item)
         elif item_type == 'folder':
             item = Folder.query.get(item_id)
-            if item and item.user_id == current_user.id:
+            if item and item.user_id == 1: # Hardcoded user ID
                 if item.subfolders or item.flashcards.count() > 0:
                     return jsonify({'error': 'Folder is not empty.'}), 400
                 db.session.delete(item)
@@ -384,7 +376,6 @@ def delete_item():
         return jsonify({'error': 'Failed to delete item.'}), 500
 
 @app.route('/delete_items_bulk', methods=['POST'])
-@login_required
 def delete_items_bulk():
     data = request.json
     items_to_delete = data.get('items', [])
@@ -399,11 +390,11 @@ def delete_items_bulk():
 
             if item_type == 'flashcard':
                 item = Flashcard.query.get(item_id)
-                if item and item.user_id == current_user.id:
+                if item and item.user_id == 1: # Hardcoded user ID
                     db.session.delete(item)
             elif item_type == 'folder':
                 item = Folder.query.get(item_id)
-                if item and item.user_id == current_user.id:
+                if item and item.user_id == 1: # Hardcoded user ID
                     if item.subfolders or item.flashcards.count() > 0:
                         db.session.rollback()
                         return jsonify({'error': f'Cannot delete non-empty folder: "{item.name}".'}), 400
@@ -417,10 +408,9 @@ def delete_items_bulk():
         return jsonify({'error': 'An error occurred during bulk deletion.'}), 500
 
 @app.route('/delete_test/<int:test_id>', methods=['DELETE'])
-@login_required
 def delete_test(test_id):
     test = MockTest.query.get_or_404(test_id)
-    if test.user_id != current_user.id:
+    if test.user_id != 1: # Hardcoded user ID
         return jsonify({'error': 'Unauthorized'}), 403
     try:
         db.session.delete(test)
@@ -431,7 +421,6 @@ def delete_test(test_id):
         return jsonify({'error': 'Failed to delete test.'}), 500
 
 @app.route('/move_items_bulk', methods=['POST'])
-@login_required
 def move_items_bulk():
     data = request.json
     items_to_move = data.get('items', [])
@@ -441,7 +430,7 @@ def move_items_bulk():
         for item_data in items_to_move:
             item_id = item_data.get('id')
             item_type = item_data.get('type')
-            move_item_logic(item_id, item_type, target_folder_id, current_user.id)
+            move_item_logic(item_id, item_type, target_folder_id, 1) # Hardcoded user ID
         db.session.commit()
         return jsonify({'message': 'Items moved successfully.'})
     except Exception as e:
@@ -449,7 +438,6 @@ def move_items_bulk():
         return jsonify({'error': 'Failed to move items.'}), 500
 
 @app.route('/move_item', methods=['POST'])
-@login_required
 def move_item():
     data = request.json
     item_id = data.get('item_id')
@@ -457,7 +445,7 @@ def move_item():
     target_folder_id = data.get('target_folder_id') 
 
     try:
-        move_item_logic(item_id, item_type, target_folder_id, current_user.id)
+        move_item_logic(item_id, item_type, target_folder_id, 1) # Hardcoded user ID
         db.session.commit()
         return jsonify({'message': 'Item moved successfully.'})
     except Exception as e:
@@ -475,7 +463,6 @@ def move_item_logic(item_id, item_type, target_folder_id, user_id):
             item.parent_id = target_folder_id
 
 @app.route("/chat", methods=["POST"])
-@login_required
 def chat():
     data = request.json
     messages = data.get("messages", [])
@@ -525,124 +512,41 @@ def chat():
         print("General Error:", e)
         return jsonify({"reply": "⚠️ An unexpected error occurred while processing the request."})
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login')
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('profile'))
-    if request.method == 'POST':
-        user = User.query.filter_by(username=request.form['username']).first()
-        if user and check_password_hash(user.password, request.form['password']):
-            login_user(user, remember=True)
-            return redirect(url_for('profile'))
-        flash('Invalid username or password', 'error')
-    return render_template('login.html')
+    return redirect(url_for('index'))
 
-@app.route('/register', methods=['GET', 'POST'])
+@app.route('/register')
 def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('profile'))
-    if request.method == 'POST':
-        try:
-            hashed_password = generate_password_hash(request.form['password'], method='pbkdf2:sha256')
-            new_user = User(username=request.form['username'], email=request.form['email'], password=hashed_password)
-            db.session.add(new_user)
-            db.session.commit()
-            flash('Account created successfully! You are now logged in.', 'success')
-            login_user(new_user)
-            return redirect(url_for('profile'))
-        except Exception as e:
-            db.session.rollback()
-            flash('Registration failed. Username or Email might already be taken.', 'error')
-            print(f"Registration Error: {e}")
-            return redirect(url_for('register'))
-    return render_template('register.html')
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
 
 @app.route('/')
 def index():
-    if current_user.is_authenticated:
-        return redirect(url_for('profile'))
     return render_template('index.html')
 
-@app.route('/profile')
-@login_required
-def profile():
-    total_flashcards = Flashcard.query.filter_by(user_id=current_user.id).count()
-    
-    attempts = db.session.query(FlashcardAttempt).join(Flashcard).filter(Flashcard.user_id == current_user.id).all()
-    total_questions_answered = len(attempts)
-
-    user_flashcards = Flashcard.query.filter_by(user_id=current_user.id).options(db.joinedload(Flashcard.folder)).all()
-    topics_dict = {}
-    for fc in user_flashcards:
-        topic = fc.topic
-        if topic == 'Manual':
-            if fc.folder:
-                topic = fc.folder.name
-            else:
-                topic = 'General'
-        topics_dict[topic] = topics_dict.get(topic, 0) + 1
-
-    performance_data = {}
-    for attempt in attempts:
-        topic = attempt.flashcard.topic
-        if topic not in performance_data:
-            performance_data[topic] = {'correct': 0, 'total': 0}
-        performance_data[topic]['total'] += 1
-        if attempt.was_correct:
-            performance_data[topic]['correct'] += 1
-    
-    topic_performance = []
-    for topic, data in performance_data.items():
-        accuracy = (data['correct'] / data['total']) * 100 if data['total'] > 0 else 0
-        topic_performance.append({'topic': topic, 'accuracy': round(accuracy)})
-    topic_performance.sort(key=lambda x: x['accuracy'], reverse=True)
-
-    recently_studied_attempts = db.session.query(FlashcardAttempt).join(Flashcard).filter(
-        Flashcard.user_id == current_user.id,
-        Flashcard.folder_id.isnot(None)
-    ).order_by(FlashcardAttempt.timestamp.desc()).limit(20).all()
-    
-    recent_folders = []
-    seen_folder_ids = set()
-    for attempt in recently_studied_attempts:
-        if attempt.flashcard.folder and attempt.flashcard.folder.id not in seen_folder_ids:
-            recent_folders.append(attempt.flashcard.folder)
-            seen_folder_ids.add(attempt.flashcard.folder.id)
-
-    return render_template('profile.html', total_flashcards=total_flashcards, topic_performance=topic_performance, recent_folders=recent_folders[:5], topics_data=topics_dict, total_questions_answered=total_questions_answered)
-
 @app.route('/tests')
-@login_required
 def tests():
     page = request.args.get('page', 1, type=int)
-    tests_pagination = MockTest.query.filter_by(user_id=current_user.id).order_by(MockTest.timestamp.desc()).paginate(page=page, per_page=10, error_out=False)
+    tests_pagination = MockTest.query.filter_by(user_id=1).order_by(MockTest.timestamp.desc()).paginate(page=page, per_page=10, error_out=False) # Hardcoded user ID
     return render_template('tests.html', tests_pagination=tests_pagination)
 
 @app.route('/tests/<int:test_id>')
-@login_required
 def take_test(test_id):
     test = MockTest.query.get_or_404(test_id)
-    if test.user_id != current_user.id:
+    if test.user_id != 1: # Hardcoded user ID
         return "Unauthorized", 403
     return render_template('take_test.html', test=test)
 
 @app.route('/chatbot')
-@login_required
 def chatbot():
-    return render_template('chatbot.html')
+    # Provide a mock user object to the template
+    mock_user = {'username': 'Guest'}
+    return render_template('chatbot.html', current_user=mock_user)
 
 @app.route('/flashcards')
-@login_required
 def flashcards():
-    top_level_folders = Folder.query.filter_by(user_id=current_user.id, parent_id=None).all()
-    top_level_flashcards = Flashcard.query.filter_by(user_id=current_user.id, folder_id=None).all()
+    top_level_folders = Folder.query.filter_by(user_id=1, parent_id=None).all() # Hardcoded user ID
+    top_level_flashcards = Flashcard.query.filter_by(user_id=1, folder_id=None).all() # Hardcoded user ID
 
     def build_folder_tree(folder):
         return {

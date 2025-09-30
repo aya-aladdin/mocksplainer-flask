@@ -14,22 +14,33 @@
         <div class="logo">
             <span>IGCSE MockSplainer</span>
         </div>
-        <a href="/login" class="btn btn-ghost btn-sm landing-signin">Sign In</a>
+        <nav class="nav">
+            <div class="nav-dropdown">
+                <button class="btn btn-primary dropdown-toggle">Start Studying <span>&#9662;</span></button>
+                <ul class="dropdown-menu">
+                    <li><a href="{{ url_for('chatbot') }}" class="dropdown-item">AI Tutor</a></li>
+                    <li><a href="{{ url_for('flashcards') }}" class="dropdown-item">Flashcards</a></li>
+                    <li><a href="{{ url_for('tests') }}" class="dropdown-item">Mock Tests</a></li>
+                </ul>
+            </div>
+        </nav>
     </div>
 
     <div class="scroll-wrapper">
         <div class="sticky-hero">
             <div class="container center-hero">
                 <div id="hero-content">
-                    <h1 class="headline">Exam-specific revision,<br>made by trusted examiners</h1>
-                    <p class="muted">Real expertise. Real results. On average, our resources help students go up 2 grades.</p>
-                    <div class="actions" id="get-started">
-                        <div class="email-signup-group">
-                            <input type="email" class="form-control" placeholder="Enter your email">
-                            <a href="/register" class="btn btn-primary">Get Started</a>
-                        </div>
-                        <a href="{{ url_for('chatbot') }}" class="btn btn-ghost">Try our AI</a>
-                    </div>
+                    <h1 class="headline">
+                        <span class="headline-thin">Welcome to</span>
+                        <span class="gradient-text">MockSplainer</span>
+                    </h1>
+                    <p class="muted typewriter-container">
+                        <span id="typewriter-text"></span><span id="typewriter-cursor">|</span>
+                    </p>
+                </div>
+                <div class="actions" id="get-started">
+                    <a href="{{ url_for('chatbot') }}" class="btn btn-primary">Try the AI Tutor</a>
+                    <a href="{{ url_for('flashcards') }}" class="btn btn-ghost">Join as Guest</a>
                 </div>
             </div>
         </div>
@@ -178,8 +189,8 @@
                 <div>
                     <h4 class="footer-heading">Home</h4>
                     <ul>
-                        <li><a href="{{ url_for('index') }}">Home</a></li>
-                        <li><a href="{{ url_for('register') }}">Resources</a></li>
+                        <li><a href="{{ url_for('index') }}">Home</a></li>_
+                        <li><a href="{{ url_for('flashcards') }}">Resources</a></li>
                     </ul>
                 </div>
 
@@ -187,22 +198,10 @@
                 <div>
                     <h4 class="footer-heading">Resources</h4>
                     <ul>
-                        <li><a href="{{ url_for('register') }}">Learning Hub</a></li>
-                        <li><a href="{{ url_for('register') }}">Teachers</a></li>
-                        <li><a href="{{ url_for('register') }}">Ambassadors</a></li>
-                        <li><a href="{{ url_for('register') }}">Scholarship</a></li>
-                        <li><a href="{{ url_for('register') }}">Join</a></li>
-                        <li><a href="{{ url_for('register') }}">Past Papers</a></li>
-                        <li><a href="{{ url_for('register') }}">Solution Banks</a></li>
+                        <li><a href="{{ url_for('chatbot') }}">AI Tutor</a></li>
+                        <li><a href="{{ url_for('flashcards') }}">Flashcards</a></li>
+                        <li><a href="{{ url_for('tests') }}">Mock Tests</a></li>
                         <li><a href="{{ url_for('index') }}">Sitemap</a></li>
-                    </ul>
-                </div>
-
-                <!-- Column 3: Members -->
-                <div>
-                    <h4 class="footer-heading">Members</h4>
-                    <ul>
-                        <li><a href="{{ url_for('login') }}">Log in</a></li>
                     </ul>
                 </div>
 
@@ -226,14 +225,11 @@
                 <div>
                     <h4 class="footer-heading">Subjects</h4>
                     <ul>
-                        <li><a href="{{ url_for('register') }}">Biology</a></li>
-                        <li><a href="{{ url_for('register') }}">Chemistry</a></li>
-                        <li><a href="{{ url_for('register') }}">Physics</a></li>
-                        <li><a href="{{ url_for('register') }}">Maths</a></li>
-                        <li><a href="{{ url_for('register') }}">Geography</a></li>
-                        <li><a href="{{ url_for('register') }}">English Literature</a></li>
-                        <li><a href="{{ url_for('register') }}">Psychology</a></li>
-                        <li><a href="{{ url_for('register') }}">All Subjects</a></li>
+                        <li><a href="#">Biology</a></li>
+                        <li><a href="#">Chemistry</a></li>
+                        <li><a href="#">Physics</a></li>
+                        <li><a href="#">Maths</a></li>
+                        <li><a href="#">All Subjects</a></li>
                     </ul>
                 </div>
 
@@ -360,6 +356,55 @@
                 }
             });
         });
+
+        // Typewriter effect
+        const typewriterTextEl = document.getElementById('typewriter-text');
+        const phrases = [
+            "AI-powered revision, built for your exams.",
+            "Instantly generate flashcards from your notes.",
+            "Create mock tests on any topic.",
+            "Get unstuck with a 24/7 AI tutor."
+        ];
+        let phraseIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+
+        function type() {
+            const currentPhrase = phrases[phraseIndex];
+            let displayText = '';
+
+            if (isDeleting) {
+                // Deleting
+                displayText = currentPhrase.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                // Typing
+                displayText = currentPhrase.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            typewriterTextEl.textContent = displayText;
+
+            let typeSpeed = isDeleting ? 50 : 100;
+
+            if (!isDeleting && charIndex === currentPhrase.length) {
+                // Pause at end of phrase
+                typeSpeed = 2000;
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                // Finished deleting
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                typeSpeed = 500; // Pause before typing next phrase
+            }
+
+            setTimeout(type, typeSpeed);
+        }
+
+        // Wait for other DOM content to be ready, then start typing
+        if (typewriterTextEl) {
+            setTimeout(type, 500);
+        }
     </script>
 </body>
 </html>

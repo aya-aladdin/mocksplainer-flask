@@ -183,6 +183,13 @@ margin: 16px auto;
 padding: 0 8px;
 }
 
+.center-hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 .container.narrow {
 max-width: 760px;
 }
@@ -207,8 +214,29 @@ margin-bottom: 5rem;
 }
 
 .headline {
-font-size: 48px;
+font-size: 60px;
 max-width: 800px;
+font-weight: 700; /* Make the default thick */
+display: flex;
+flex-direction: column;
+align-items: center;
+}
+.headline-thin {
+    font-weight: 300; /* Thin font weight */
+}
+
+.typewriter-container {
+    font-size: 1.25rem;
+    min-height: 2em; /* Reserve space to prevent layout shift */
+}
+
+#typewriter-cursor {
+    animation: blink 0.7s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
 }
 
 .actions {
@@ -317,6 +345,7 @@ margin-top: 4rem;
 
 #get-started {
 padding-top: 30px;
+position: relative; /* Keep it in the flow but allow z-index if needed */
 }
 
 .quote {
@@ -1508,12 +1537,16 @@ padding: 0 16px;
 }
 
 .headline {
-    font-size: 36px;
+    font-size: 48px;
 }
 
 .actions {
     flex-direction: column;
     align-items: center;
+}
+
+.typewriter-container {
+    font-size: 1.1rem;
 }
 
 .btn {
@@ -1672,7 +1705,11 @@ padding: 0 16px;
 
 @media (max-width: 480px) {
 .headline {
-font-size: 28px;
+font-size: 38px;
+}
+
+.typewriter-container {
+    font-size: 1rem;
 }
 
 .email-signup-group {
