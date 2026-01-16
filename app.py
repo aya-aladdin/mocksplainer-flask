@@ -10,7 +10,13 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from markupsafe import Markup
 import markdown
-HACKCLUB_API_URL = "https://ai.hackclub.com/chat/completions"
+HACKCLUB_API_URL = "https://ai.hackclub.com/proxy/v1/chat/completions"
+HACKCLUB_API_KEY = "sk-hc-v1-e1bb3869c7ce4efabde80e08ee491c80c4389dbade584e0ca951eae9f3b89835"
+API_HEADERS = {
+    'Content-Type': 'application/json',
+    'Authorization': f'Bearer {HACKCLUB_API_KEY}',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+}
 IGCSE_INFO_TEXT = "The user is studying IGCSE level content in Math, Physics, Biology, and Chemistry. Focus your answers on curriculum topics."
 
 app = Flask(__name__)
@@ -145,8 +151,8 @@ def generate_flashcards_ai():
 
         req = urllib.request.Request(
             HACKCLUB_API_URL,
-            data=json.dumps({"model": "gpt-4o-mini", "messages": api_messages, "max_tokens": 1000}).encode('utf-8'),
-            headers={'Content-Type': 'application/json'}
+            data=json.dumps({"model": "qwen/qwen3-32b", "messages": api_messages, "max_tokens": 1000}).encode('utf-8'),
+            headers=API_HEADERS
         )
 
         with urllib.request.urlopen(req) as response:
@@ -232,8 +238,8 @@ def generate_test_ai():
 
         req = urllib.request.Request(
             HACKCLUB_API_URL,
-            data=json.dumps({"model": "gpt-4o-mini", "messages": api_messages, "max_tokens": 2000}).encode('utf-8'),
-            headers={'Content-Type': 'application/json'}
+            data=json.dumps({"model": "qwen/qwen3-32b", "messages": api_messages, "max_tokens": 2000}).encode('utf-8'),
+            headers=API_HEADERS
         )
 
         with urllib.request.urlopen(req) as response:
@@ -487,11 +493,11 @@ def chat():
         req = urllib.request.Request(
             HACKCLUB_API_URL,
             data=json.dumps({
-                "model": "gpt-4o-mini",
+                "model": "qwen/qwen3-32b",
                 "messages": api_messages,
                 "max_tokens": 800
             }).encode('utf-8'),
-            headers={'Content-Type': 'application/json'}
+            headers=API_HEADERS
         )
         with urllib.request.urlopen(req) as response:
             if response.status == 200:
