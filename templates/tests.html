@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (response.ok) {
             window.location.href = `/tests/${data.test_id}`;
         } else {
-            alert('Error: ' + (data.error || 'Could not generate test.'));
+            console.error('Error: ' + (data.error || 'Could not generate test.'));
         }
     }
 
@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data.message) {
                         listItem.remove();
                     } else {
-                        alert('Error: ' + (data.error || 'Could not delete test.'));
+                        console.error('Error: ' + (data.error || 'Could not delete test.'));
                     }
                 });
             }

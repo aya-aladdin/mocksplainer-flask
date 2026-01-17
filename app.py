@@ -186,7 +186,7 @@ def create_folder():
         new_folder = Folder(name=name, user_id=1, parent_id=parent_id) # Hardcoded user ID
         db.session.add(new_folder)
         db.session.commit()
-        return jsonify({'id': new_folder.id, 'name': new_folder.name, 'parent_id': new_folder.parent_id})
+        return jsonify({'id': new_folder.id, 'name': new_folder.name, 'parent_id': new_folder.parent_id, 'icon': new_folder.icon})
     except Exception as e:
         db.session.rollback()
         print(f"Folder Creation Error: {e}")

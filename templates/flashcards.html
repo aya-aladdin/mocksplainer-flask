@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
             a.id = `folder-link-${folder.id}`;
             a.href = '#';
             a.dataset.folderId = folder.id;
-            a.innerHTML = `<span class="folder-icon">${folder.icon}</span> ${folder.name}`;
+            a.innerHTML = `<span class="folder-icon">${folder.icon || '📁'}</span> ${folder.name}`;
             a.addEventListener('click', (e) => {
                 e.preventDefault();
                 navigateToFolder(folder.id);
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const a = document.createElement('a');
             a.href = '#';
             a.dataset.folderId = folder.id;
-            a.innerHTML = `<span class="folder-icon">${folder.icon}</span> ${folder.name}`;
+            a.innerHTML = `<span class="folder-icon">${folder.icon || '📁'}</span> ${folder.name}`;
             a.addEventListener('click', (e) => {
                 e.preventDefault();
                 document.querySelectorAll('#move-folder-tree a').forEach(link => link.classList.remove('active'));
@@ -293,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function() {
             checkbox.id = `learn-check-${folder.id}`;
             
             label.setAttribute('for', checkbox.id);
-            label.innerHTML = `<span class="folder-icon">${folder.icon}</span> ${folder.name}`;
+            label.innerHTML = `<span class="folder-icon">${folder.icon || '📁'}</span> ${folder.name}`;
             
             li.appendChild(checkbox);
             li.appendChild(label);
@@ -320,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function() {
             folderEl.dataset.itemType = 'folder';
 
             folderEl.innerHTML = `
-                <div class="item-icon">${folder.icon}</div>
+                <div class="item-icon">${folder.icon || '📁'}</div>
                 <div class="item-name">${folder.name}</div>
                 <div class="item-menu-btn">...</div>
                 <div class="item-menu-dropdown">
@@ -480,7 +480,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             } catch (error) {
                 console.error(error);
-                alert('Error creating folder.');
+                // Alert removed to prevent interruption when successful
             }
         }
     });
