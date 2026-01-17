@@ -210,6 +210,10 @@ def generate_test_ai():
             - Generate questions appropriate for the specified curriculum level.
             - Each question must have a 'question_number', 'question_text', 'marks', a 'model_answer', and an 'answer_text' (the mark scheme).
             - The 'question_text', 'model_answer', and 'answer_text' fields MUST all be formatted using Markdown.
+            - IMPORTANT: When using LaTeX for math or chemical equations:
+              1. Wrap the expression in single dollar signs, e.g., $...$.
+              2. You MUST double-escape backslashes in the JSON string.
+              - Correct: "Balance $\\text{H}_2 + \\text{O}_2 \\rightarrow \\text{H}_2\\text{O}$"
             - The 'answer_text' (mark scheme) MUST follow IGCSE conventions:
                 - Use a bulleted list for marking points.
                 - Indicate the mark for each point in square brackets, e.g., `[1]`.
@@ -251,6 +255,11 @@ def generate_test_ai():
                 try:
                     # Pre-process to remove any <think>...</think> blocks
                     content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
+                    
+                    # Fix common LaTeX JSON escaping issues where AI might output \text instead of \\text
+                    latex_commands = ['text', 'frac', 'rightarrow', 'leftarrow', 'cdot', 'times', 'ce', 'sqrt', 'pm', 'approx', 'Delta', 'theta', 'pi', 'alpha', 'beta', 'gamma']
+                    for cmd in latex_commands:
+                        content = re.sub(r'(?<!\\)\\' + cmd, r'\\\\' + cmd, content)
 
                     # 1. Extract the JSON part of the string to remove any leading/trailing text from the AI.
                     json_match = re.search(r'\{.*\}', content, re.DOTALL)
