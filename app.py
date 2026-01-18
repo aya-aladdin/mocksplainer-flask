@@ -22,7 +22,6 @@ IGCSE_INFO_TEXT = "The user is studying IGCSE level content in Math, Physics, Bi
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'SNSnT_LoJM8ejQ1GFtSJCdcrQJCg1NInP5Klbp68Rqs'
 
-# Use Vercel Postgres in production, otherwise fall back to a local SQLite database.
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
     DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
@@ -89,7 +88,7 @@ class TestQuestion(db.Model):
     question_text = db.Column(db.Text, nullable=False)
     marks = db.Column(db.Integer, nullable=False)
     answer_text = db.Column(db.Text, nullable=False)
-    model_answer = db.Column(db.Text, nullable=True) # New field for the model answer
+    model_answer = db.Column(db.Text, nullable=True)
 
 with app.app_context():
     db.create_all()
@@ -110,7 +109,7 @@ def save_flashcards():
         new_flashcards = []
         for fc in flashcards_data:
             new_flashcard = Flashcard(
-                user_id=1, # Hardcoded user ID
+                user_id=1,
                 topic=fc.get('topic', 'Unassigned'),
                 question=fc.get('question'),
                 answer=fc.get('answer'),
@@ -183,7 +182,7 @@ def create_folder():
         return jsonify({'error': 'Folder name cannot be empty.'}), 400
 
     try:
-        new_folder = Folder(name=name, user_id=1, parent_id=parent_id) # Hardcoded user ID
+        new_folder = Folder(name=name, user_id=1, parent_id=parent_id)
         db.session.add(new_folder)
         db.session.commit()
         return jsonify({'id': new_folder.id, 'name': new_folder.name, 'parent_id': new_folder.parent_id, 'icon': new_folder.icon})
@@ -253,22 +252,18 @@ def generate_test_ai():
                 content = ai_response_data['choices'][0]['message']['content']
 
                 try:
-                    # Pre-process to remove any <think>...</think> blocks
                     content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
                     
-                    # Fix common LaTeX JSON escaping issues where AI might output \text instead of \\text
                     latex_commands = ['text', 'frac', 'rightarrow', 'leftarrow', 'cdot', 'times', 'ce', 'sqrt', 'pm', 'approx', 'Delta', 'theta', 'pi', 'alpha', 'beta', 'gamma']
                     for cmd in latex_commands:
                         content = re.sub(r'(?<!\\)\\' + cmd, r'\\\\' + cmd, content)
 
-                    # 1. Extract the JSON part of the string to remove any leading/trailing text from the AI.
                     json_match = re.search(r'\{.*\}', content, re.DOTALL)
                     if not json_match:
                         raise ValueError(f"No JSON object found in AI response. Content: {content}")
                     
                     json_string = json_match.group(0)
                     
-                    # 2. Use dirtyjson to parse the extracted, potentially malformed JSON.
                     test_data = dirtyjson.loads(json_string)
                 except Exception as e:
                     print(f"AI Test Generation Error: Failed to parse AI response. Error: {e}")
@@ -279,7 +274,7 @@ def generate_test_ai():
                 if not questions_data:
                     raise ValueError("AI returned a valid response but with no questions in it.")
 
-                new_test = MockTest(user_id=1, topic=topic) # Hardcoded user ID
+                new_test = MockTest(user_id=1, topic=topic)
                 db.session.add(new_test)
                 db.session.flush()
 
@@ -310,7 +305,7 @@ def get_learn_session_flashcards():
     
     def fetch_flashcards_recursive(folder_id):
         folder = Folder.query.get(folder_id)
-        if not folder or folder.user_id != 1: # Hardcoded user ID
+        if not folder or folder.user_id != 1:
             return
 
         for fc in folder.flashcards:
@@ -337,7 +332,7 @@ def record_learn_attempt():
     if flashcard_id is None or was_correct is None:
         return jsonify({'error': 'Missing data.'}), 400
 
-    attempt = FlashcardAttempt(user_id=1, flashcard_id=flashcard_id, was_correct=was_correct) # Hardcoded user ID
+    attempt = FlashcardAttempt(user_id=1, flashcard_id=flashcard_id, was_correct=was_correct)
     db.session.add(attempt)
     db.session.commit()
     return jsonify({'message': 'Attempt recorded.'})
@@ -353,12 +348,12 @@ def update_item():
     try:
         if item_type == 'folder':
             item = Folder.query.get(item_id)
-            if item and item.user_id == 1: # Hardcoded user ID
+            if item and item.user_id == 1:
                 if new_name: item.name = new_name
                 if new_icon: item.icon = new_icon
         elif item_type == 'flashcard':
             item = Flashcard.query.get(item_id)
-            if item and item.owner.id == 1: # Hardcoded user ID
+            if item and item.owner.id == 1:
                 if new_name: item.question = new_name
         
         db.session.commit()
@@ -376,11 +371,11 @@ def delete_item():
     try:
         if item_type == 'flashcard':
             item = Flashcard.query.get(item_id)
-            if item and item.user_id == 1: # Hardcoded user ID
+            if item and item.user_id == 1:
                 db.session.delete(item)
         elif item_type == 'folder':
             item = Folder.query.get(item_id)
-            if item and item.user_id == 1: # Hardcoded user ID
+            if item and item.user_id == 1:
                 if item.subfolders or item.flashcards.count() > 0:
                     return jsonify({'error': 'Folder is not empty.'}), 400
                 db.session.delete(item)
@@ -405,11 +400,11 @@ def delete_items_bulk():
 
             if item_type == 'flashcard':
                 item = Flashcard.query.get(item_id)
-                if item and item.user_id == 1: # Hardcoded user ID
+                if item and item.user_id == 1:
                     db.session.delete(item)
             elif item_type == 'folder':
                 item = Folder.query.get(item_id)
-                if item and item.user_id == 1: # Hardcoded user ID
+                if item and item.user_id == 1:
                     if item.subfolders or item.flashcards.count() > 0:
                         db.session.rollback()
                         return jsonify({'error': f'Cannot delete non-empty folder: "{item.name}".'}), 400
@@ -425,7 +420,7 @@ def delete_items_bulk():
 @app.route('/delete_test/<int:test_id>', methods=['DELETE'])
 def delete_test(test_id):
     test = MockTest.query.get_or_404(test_id)
-    if test.user_id != 1: # Hardcoded user ID
+    if test.user_id != 1:
         return jsonify({'error': 'Unauthorized'}), 403
     try:
         db.session.delete(test)
@@ -445,7 +440,7 @@ def move_items_bulk():
         for item_data in items_to_move:
             item_id = item_data.get('id')
             item_type = item_data.get('type')
-            move_item_logic(item_id, item_type, target_folder_id, 1) # Hardcoded user ID
+            move_item_logic(item_id, item_type, target_folder_id, 1)
         db.session.commit()
         return jsonify({'message': 'Items moved successfully.'})
     except Exception as e:
@@ -460,7 +455,7 @@ def move_item():
     target_folder_id = data.get('target_folder_id') 
 
     try:
-        move_item_logic(item_id, item_type, target_folder_id, 1) # Hardcoded user ID
+        move_item_logic(item_id, item_type, target_folder_id, 1)
         db.session.commit()
         return jsonify({'message': 'Item moved successfully.'})
     except Exception as e:
@@ -542,26 +537,25 @@ def index():
 @app.route('/tests')
 def tests():
     page = request.args.get('page', 1, type=int)
-    tests_pagination = MockTest.query.filter_by(user_id=1).order_by(MockTest.timestamp.desc()).paginate(page=page, per_page=10, error_out=False) # Hardcoded user ID
+    tests_pagination = MockTest.query.filter_by(user_id=1).order_by(MockTest.timestamp.desc()).paginate(page=page, per_page=10, error_out=False)
     return render_template('tests.html', tests_pagination=tests_pagination)
 
 @app.route('/tests/<int:test_id>')
 def take_test(test_id):
     test = MockTest.query.get_or_404(test_id)
-    if test.user_id != 1: # Hardcoded user ID
+    if test.user_id != 1:
         return "Unauthorized", 403
     return render_template('take_test.html', test=test)
 
 @app.route('/chatbot')
 def chatbot():
-    # Provide a mock user object to the template
     mock_user = {'username': 'Guest'}
     return render_template('chatbot.html', current_user=mock_user)
 
 @app.route('/flashcards')
 def flashcards():
-    top_level_folders = Folder.query.filter_by(user_id=1, parent_id=None).all() # Hardcoded user ID
-    top_level_flashcards = Flashcard.query.filter_by(user_id=1, folder_id=None).all() # Hardcoded user ID
+    top_level_folders = Folder.query.filter_by(user_id=1, parent_id=None).all()
+    top_level_flashcards = Flashcard.query.filter_by(user_id=1, folder_id=None).all()
 
     def build_folder_tree(folder):
         return {

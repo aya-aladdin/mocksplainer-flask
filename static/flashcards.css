@@ -315,14 +315,14 @@ padding: 0;
     border-radius: 12px;
     box-shadow: var(--shadow-lg);
     z-index: 999;
-    display: none; /* Hidden by default */
+    display: none;
     align-items: center;
     justify-content: space-between;
     gap: 20px;
 }
 
 .bulk-action-bar.visible {
-    display: flex; /* Shown when visible class is added */
+    display: flex;
 }
 
 .bulk-action-bar .selection-count {
@@ -380,7 +380,6 @@ padding: 0;
     transform: rotate(90deg);
 }
 
-/* --- Emoji Picker Styles --- */
 .emoji-picker-content {
     padding: 1rem;
     max-height: 70vh;
@@ -412,7 +411,6 @@ padding: 0;
     margin-bottom: 0.5rem;
 }
 
-/* --- iOS Style Emoji Picker Buttons --- */
 #emoji-grid .emoji-btn {
     font-size: 1.5rem;
     border: none;
@@ -427,7 +425,6 @@ padding: 0;
     background-color: #f3f4f6;
 }
 
-/* --- Learn Mode Modal Styles --- */
 .learn-modal-content {
     background: transparent;
     box-shadow: none;
@@ -442,7 +439,7 @@ padding: 0;
 .learn-flashcard {
     width: 100%;
     height: 0;
-    padding-bottom: 60%; /* Aspect ratio for the card */
+    padding-bottom: 60%;
     position: relative;
     perspective: 1500px;
     cursor: pointer;
@@ -505,14 +502,13 @@ padding: 0;
     gap: 1rem;
 }
 
-/* --- Mobile Specific --- */
 .fab-container, .mobile-view-switcher, .mobile-bottom-actions {
     display: none;
 }
 
 @media (max-width: 768px) {
     .flashcards-layout {
-        padding-bottom: 100px; /* Space for sticky bottom bar */
+        padding-bottom: 100px;
     }
 
     .flashcards-sidebar, .flashcards-main {
@@ -522,7 +518,7 @@ padding: 0;
     }
 
     .flashcards-main-header .actions {
-        display: none; /* Hide desktop action buttons */
+        display: none;
     }
 
     .mobile-view-switcher {
@@ -549,13 +545,12 @@ padding: 0;
         box-shadow: var(--shadow);
     }
 
-    /* Hide sidebar by default on mobile, as 'Items' is the default view */
     .flashcards-sidebar {
         display: none;
     }
 
     .fab-container {
-        display: block; /* Show the container on mobile */
+        display: block;
         position: fixed;
         bottom: 90px;
         right: 20px;
@@ -576,7 +571,7 @@ padding: 0;
         font-size: 28px;
         cursor: pointer;
         transition: transform 0.3s ease;
-        position: relative; /* For stacking context */
+        position: relative;
         z-index: 1001;
     }
 
@@ -586,8 +581,8 @@ padding: 0;
 
     .fab-actions {
         position: absolute;
-        bottom: 100%; /* Position above the FAB */
-        right: 4px; /* Align with the main FAB */
+        bottom: 100%;
+        right: 4px;
         margin-bottom: 16px;
         display: flex;
         flex-direction: column;
@@ -623,13 +618,13 @@ padding: 0;
     }
 
     .mobile-bottom-actions {
-        display: flex; /* Changed to flex */
-        justify-content: center; /* Center content horizontally */
-        align-items: center; /* Center content vertically */
+        display: flex;
+        justify-content: center;
+        align-items: center;
         position: fixed;
         bottom: 0;
-        left: 0; /* Ensure it spans full width */
-        right: 0; /* Ensure it spans full width */
+        left: 0;
+        right: 0;
         background: rgba(255, 255, 255, 0.8);
         backdrop-filter: blur(10px);
         padding: 1rem;
@@ -638,7 +633,7 @@ padding: 0;
     }
 
     .mobile-bottom-actions .btn {
-        width: auto; /* Allow button to size to its content */
-        max-width: 300px; /* Limit its maximum width */
+        width: auto;
+        max-width: 300px;
     }
 }

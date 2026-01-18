@@ -20,7 +20,6 @@ box-sizing: border-box;
 }
 
 html, body {
-/* Cleaned up: Removed redundant dark background definition */
 margin: 0;
 padding: 0;
 background-color: var(--ink);
@@ -38,7 +37,6 @@ flex-direction: column;
 min-height: 100vh;
 }
 
-/* Scroll Animation Classes */
 .scroll-animate {
 opacity: 0;
 transform: translateY(30px);
@@ -69,7 +67,6 @@ padding: 6px 20px;
 background: rgba(255, 255, 255, .7);
 gap: 20px;
 backdrop-filter: saturate(1.2) blur(10px);
-/* Used CSS variable for border color */
 border-bottom: 1px solid var(--border);
 }
 
@@ -115,7 +112,6 @@ display: inline-block;
 .dropdown-toggle {
 background: none;
 border: none;
-/* Used CSS variable for color */
 color: var(--ink);
 padding: 8px 10px;
 border-radius: 10px;
@@ -162,7 +158,6 @@ display: block;
 .nav a {
 padding: 8px 10px;
 border-radius: 10px;
-/* Used CSS variable for color */
 color: var(--ink);
 }
 
@@ -179,7 +174,6 @@ border-radius: 999px;
 font-weight: 700;
 }
 .nav .pill:hover {
-/* Consistent hover color */
 background: #1d4ed8;
 }
 
@@ -222,18 +216,18 @@ margin-bottom: 5rem;
 .headline {
 font-size: 60px;
 max-width: 800px;
-font-weight: 700; /* Make the default thick */
+font-weight: 700;
 display: flex;
 flex-direction: column;
 align-items: center;
 }
 .headline-thin {
-    font-weight: 300; /* Thin font weight */
+    font-weight: 300;
 }
 
 .typewriter-container {
     font-size: 1.25rem;
-    min-height: 2em; /* Reserve space to prevent layout shift */
+    min-height: 2em;
 }
 
 #typewriter-cursor {
@@ -268,7 +262,6 @@ border: 1px solid transparent;
 text-decoration: none;
 }
 .btn:hover {
-/* Used CSS variable for hover background */
 background-color: var(--bg);
 box-shadow: var(--shadow);
 }
@@ -291,7 +284,6 @@ box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
 .btn-secondary {
-/* Used CSS variable for secondary button background */
 background: var(--border);
 border: 1px solid #ced4da;
 }
@@ -351,7 +343,7 @@ margin-top: 4rem;
 
 #get-started {
 padding-top: 30px;
-position: relative; /* Keep it in the flow but allow z-index if needed */
+position: relative;
 }
 
 .quote {
@@ -375,7 +367,7 @@ min-width: 450px;
 .email-signup-group .form-control {
 background: transparent;
 border-color: transparent;
-color: var(--ink); /* Used CSS variable for text color */
+color: var(--ink);
 padding-top: 1rem;
 padding-bottom: 1rem;
 padding-right: 140px;
@@ -485,7 +477,7 @@ will-change: transform, opacity;
 .scroll-content {
 position: relative;
 z-index: 10;
-background-color: #f3f4f4; /* Used a lighter background color for contrast against white panel */
+background-color: #f3f4f4;
 }
 
 .section-bg-darker {
@@ -530,7 +522,6 @@ font-weight: 500;
 color: var(--muted);
 }
 .footer {
-/* Used CSS variable for footer background color */
 background-color: var(--ink);
 color: #a0aec0;
 padding: 3rem 0;
@@ -552,7 +543,6 @@ grid-template-columns: repeat(6, 1fr);
 }
 }
 .footer-heading {
-/* Used CSS variable for footer heading color */
 color: var(--panel);
 font-weight: bold;
 margin-bottom: 1rem;
@@ -637,7 +627,6 @@ transition: opacity 0.6s ease-in-out;
 transform: scale(1.1);
 }
 
-/* NOTE: The following URLs are placeholders for images and must be replaced with actual assets for the visual effect to work */
 .feature-box-tutor::before {
 background-image: url('/static/img/v3.png');
 }
@@ -793,7 +782,7 @@ padding-bottom: 1.5rem;
 }
 
 .study-image-pane {
-    position: relative; /* Container for stacked images */
+    position: relative;
     overflow: hidden;
 }
 
@@ -805,11 +794,11 @@ padding-bottom: 1.5rem;
     height: 100%;
     object-fit: cover;
     opacity: 0;
-    transition: opacity 1.5s ease-in-out; /* Smooth transition */
+    transition: opacity 1.5s ease-in-out;
 }
 
 .study-image-pane .showcase-img.active {
-    opacity: 1; /* Make the active image visible */
+    opacity: 1;
 }
 
 .showcase-img {
@@ -829,7 +818,6 @@ opacity: 0.99;
 
 .chat-layout-container {
 display: flex;
-/* Adjusted height calculation for better responsiveness */
 height: calc(100vh - 61px - 3rem);
 gap: 1rem;
 }
@@ -1025,7 +1013,6 @@ transition: background-color 0.2s;
 background: #1d4ed8;
 }
 
-/* Gemini Welcome Screen Styles */
 #chat-welcome-screen {
 flex-grow: 1;
 display: flex;
@@ -1444,7 +1431,6 @@ display: flex;
 justify-content: flex-end;
 }
 
-/* --- New Gemini-style Test Layout --- */
 .test-layout-container {
 display: flex;
 gap: 3rem;
@@ -1527,9 +1513,6 @@ background-color: var(--panel);
 border-color: var(--accent);
 }
 
-/* --- Mobile Responsiveness --- */
-
-/* Generic App Layout with Sidebar */
 .app-layout {
 display: flex;
 gap: 32px;
@@ -1595,7 +1578,6 @@ padding: 0 16px;
 }
 
 .footer-grid {
-    /* Adjusted to two columns on tablet/mid-screens */
     grid-template-columns: repeat(2, 1fr);
 }
 
@@ -1625,7 +1607,6 @@ padding: 0 16px;
     align-items: flex-start;
 }
 
-/* --- Layouts with Sidebars --- */
 .chat-layout-container,
 .test-layout-container {
     flex-direction: column;
@@ -1677,7 +1658,6 @@ padding: 0 16px;
 .study-image-pane-full {
     min-height: 200px;
 }
-/* Feature Grid Stacking on Mobile/Tablet */
 .features-grid {
     grid-template-columns: 1fr;
     min-height: auto;
@@ -1717,7 +1697,6 @@ padding: 0 16px;
 }
 
 @media (max-width: 992px) {
-    /* Feature Grid Stacking on Mobile/Tablet */
     .features-grid {
         grid-template-columns: 1fr;
         min-height: auto;
@@ -1762,7 +1741,6 @@ font-size: 38px;
 }
 
 .email-signup-group {
-    /* Fixed: Form group now stacks vertically on small screens */
     min-width: unset;
     flex-direction: column;
 }
@@ -1780,7 +1758,6 @@ font-size: 38px;
 }
 
 .footer-grid {
-    /* Stack footer links on small phones */
     grid-template-columns: 1fr;
     gap: 2.5rem;
 }
@@ -1829,22 +1806,21 @@ font-size: 38px;
     font-size: 0.9rem;
 }
 
-/* Landing page hamburger menu specifics */
 #landing-hamburger-menu {
-    display: none; /* Hidden by default */
+    display: none;
 }
 
 @media (max-width: 768px) {
     #landing-hamburger-menu {
-        display: block; /* Show hamburger on mobile */
+        display: block;
     }
 
     #landing-nav .nav-dropdown {
-        display: none; /* Hide the "Start Studying" button */
+        display: none;
     }
 
     #landing-nav.active .nav-dropdown {
-        display: block; /* Show dropdown when nav is active */
+        display: block;
         position: static;
     }
 
@@ -1864,8 +1840,6 @@ font-size: 38px;
     }
 }
 }
-
-/* --- ADDED: Styles for Smooth Image Cross-fade (Melting Effect) --- */
 
 .study-image-pane-full {
 position: relative;

@@ -185,11 +185,9 @@
         </div>
     </div>
 
-    <!-- Start of Footer -->
     <footer class="footer">
         <div class="footer-container">
             <div class="footer-grid">
-                <!-- Column 1: Home -->
                 <div>
                     <h4 class="footer-heading">Home</h4>
                     <ul>
@@ -198,7 +196,6 @@
                     </ul>
                 </div>
 
-                <!-- Column 2: Resources -->
                 <div>
                     <h4 class="footer-heading">Resources</h4>
                     <ul>
@@ -209,7 +206,6 @@
                     </ul>
                 </div>
 
-                <!-- Column 4: Company -->
                 <div>
                     <h4 class="footer-heading">Company</h4>
                     <ul>
@@ -225,7 +221,6 @@
                     </ul>
                 </div>
 
-                <!-- Column 5: Subjects -->
                 <div>
                     <h4 class="footer-heading">Subjects</h4>
                     <ul>
@@ -237,7 +232,6 @@
                     </ul>
                 </div>
 
-                <!-- Column 6: Social Media -->
                 <div>
                     <h4 class="footer-heading">Follow us</h4>
                     <ul>
@@ -255,7 +249,6 @@
             </div>
         </div>
     </footer>
-    <!-- End of Footer -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const featureTabs = document.querySelectorAll('.feature-tab');
@@ -274,21 +267,17 @@
                     const currentActiveTab = document.querySelector('.feature-tab.active');
                     if (currentActiveTab === tab) return;
 
-                    // Deactivate all tabs
                     featureTabs.forEach(t => t.classList.remove('active'));
 
-                    // Activate the clicked tab
                     tab.classList.add('active');
                     moveIndicator(tab);
 
-                    // Handle panel transitions
                     const currentActivePanel = document.querySelector('.feature-panel.active');
                     if (currentActivePanel) {
                         currentActivePanel.classList.add('exiting');
                         currentActivePanel.classList.remove('active');
                     }
 
-                    // Activate the corresponding panel
                     const feature = tab.dataset.feature;
                     const newPanel = document.getElementById(`feature-${feature}`);
                     newPanel.classList.remove('exiting');
@@ -297,7 +286,6 @@
             });
             moveIndicator(document.querySelector('.feature-tab.active'));
 
-            // Seamless scroller logic
             const scrollers = document.querySelectorAll(".scroller");
             if (scrollers.length > 0) {
                 scrollers.forEach((scroller) => {
@@ -313,14 +301,13 @@
             }
         });
 
-        // Hero scroll animation
         window.addEventListener('scroll', () => {
             const heroContent = document.getElementById('hero-content');
             const scrollY = window.scrollY;
             const heroHeight = document.querySelector('.sticky-hero').offsetHeight;
             
             if (heroContent && scrollY < heroHeight) {
-                const scrollFraction = scrollY / (heroHeight / 2); // Control speed of animation
+                const scrollFraction = scrollY / (heroHeight / 2);
                 const scale = Math.max(0.8, 1 - scrollFraction * 0.2);
                 const opacity = Math.max(0, 1 - scrollFraction * 1.5);
 
@@ -331,14 +318,12 @@
             }
         });
 
-        // Study showcase accordion
         const accordionItems = document.querySelectorAll('.accordion-item');
         const showcaseImages = document.querySelectorAll('.study-image-pane-full .showcase-img');
 
         accordionItems.forEach((item, index) => {
             const header = item.querySelector('.accordion-header');
             header.addEventListener('click', () => {
-                // Don't do anything if it's already active
                 if (item.classList.contains('active')) {
                     return;
                 }
@@ -349,7 +334,6 @@
 
                 item.classList.add('active');
 
-                // Handle image cross-fade
                 const activeImg = document.querySelector('.showcase-img.active');
                 const inactiveImg = Array.from(showcaseImages).find(img => !img.classList.contains('active'));
 
@@ -361,7 +345,6 @@
             });
         });
 
-        // Typewriter effect
         const typewriterTextEl = document.getElementById('typewriter-text');
         const phrases = [
             "AI-powered revision, built for your exams.",
@@ -378,11 +361,9 @@
             let displayText = '';
 
             if (isDeleting) {
-                // Deleting
                 displayText = currentPhrase.substring(0, charIndex - 1);
                 charIndex--;
             } else {
-                // Typing
                 displayText = currentPhrase.substring(0, charIndex + 1);
                 charIndex++;
             }
@@ -392,25 +373,21 @@
             let typeSpeed = isDeleting ? 50 : 100;
 
             if (!isDeleting && charIndex === currentPhrase.length) {
-                // Pause at end of phrase
                 typeSpeed = 2000;
                 isDeleting = true;
             } else if (isDeleting && charIndex === 0) {
-                // Finished deleting
                 isDeleting = false;
                 phraseIndex = (phraseIndex + 1) % phrases.length;
-                typeSpeed = 500; // Pause before typing next phrase
+                typeSpeed = 500;
             }
 
             setTimeout(type, typeSpeed);
         }
 
-        // Wait for other DOM content to be ready, then start typing
         if (typewriterTextEl) {
             setTimeout(type, 500);
         }
 
-        // Hamburger menu for landing page
         const landingHamburger = document.getElementById('landing-hamburger-menu');
         if (landingHamburger) {
             const landingNav = document.getElementById('landing-nav');

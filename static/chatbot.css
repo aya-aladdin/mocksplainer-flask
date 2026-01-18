@@ -1,6 +1,6 @@
 .chat-layout-container {
     display: flex;
-    height: calc(100vh - 61px - 4rem); /* Full height minus topbar and main content padding */
+    height: calc(100vh - 61px - 4rem);
     gap: 1rem;
 }
 
@@ -62,7 +62,7 @@
 
 .chatbot-page-container.gemini-style {
     max-width: 900px;
-    margin: 0 auto; /* Center it */
+    margin: 0 auto;
     width: 100%;
     height: 100%;
     display: flex;
@@ -89,7 +89,7 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 61px - 4rem); /* Full height minus topbar and main content padding */
+    height: calc(100vh - 61px - 4rem);
     border: none;
     overflow: hidden;
     background: transparent;
@@ -197,7 +197,6 @@
     background: #1d4ed8;
 }
 
-/* Gemini Welcome Screen Styles */
 #chat-welcome-screen {
     flex-grow: 1;
     display: flex;

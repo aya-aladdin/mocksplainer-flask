@@ -5,10 +5,8 @@
 {% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='chatbot.css') }}">{% endblock %}
 {% block content %}
 <div class="chatbot-page-container gemini-style">
-    <!-- Main Chat Area -->
     <main class="chat-main">
         <div id="chat-container">
-            <!-- Gemini-style Welcome Screen -->
             <div id="chat-welcome-screen">
                 <div class="welcome-header">
                     <h1 class="gradient-text">Hello, Student</h1>
@@ -35,7 +33,6 @@
             </div>
 
             <div id="chat-messages">
-                <!-- Chat messages will be appended here by JavaScript -->
             </div>
             <form id="chat-form">
                 <input type="text" id="chat-input" placeholder="Enter a prompt here" autocomplete="off">
@@ -50,18 +47,13 @@
         const chatInput = document.getElementById('chat-input');
         const chatMessages = document.getElementById('chat-messages');
         const welcomeScreen = document.getElementById('chat-welcome-screen');
-        let conversationHistory = []; // Array to store the conversation
+        let conversationHistory = [];
 
-        /**
-         * Appends a new message to the chat container and handles rendering.
-         */
         function appendMessage(sender, text) {
-            // Hide welcome screen on first message
             if (welcomeScreen.style.display !== 'none') {
                 welcomeScreen.style.display = 'none';
             }
 
-            // Add message to history
             conversationHistory.push({ role: (sender === 'bot' ? 'assistant' : 'user'), content: text });
 
             const messageElement = document.createElement('div');
@@ -69,11 +61,9 @@
             
             if (sender === 'bot') {
                 const avatar = '<div class="bot-avatar">✨</div>';
-                // Use marked.js to parse markdown for bot messages
                 messageElement.innerHTML = avatar + '<div class="message-content">' + marked.parse(text) + '</div>'; 
             } else {
                 const avatar = '<div class="user-avatar">G</div>';
-                // For user messages, display plain text only
                 const messageContent = document.createElement('div');
                 messageContent.className = 'message-content';
                 messageContent.textContent = text;
@@ -84,7 +74,6 @@
             messageElement.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
             chatMessages.appendChild(messageElement);
 
-            // After appending, tell KaTeX to render math expressions
             if (sender === 'bot') {
                 renderMathInElement(messageElement, {
                     delimiters: [
@@ -104,7 +93,6 @@
             sendMessage();
         }
 
-        // --- Form Submission Logic ---
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             sendMessage();
@@ -114,7 +102,7 @@
             const message = chatInput.value.trim();
             if (!message) return;
 
-            appendMessage('user', message); // This now correctly adds to history and DOM
+            appendMessage('user', message);
             chatInput.value = '';
 
             try {

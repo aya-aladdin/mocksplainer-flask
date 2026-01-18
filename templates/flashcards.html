@@ -26,7 +26,6 @@
             </div>
         </div>
 
-        <!-- Mobile-only view switcher -->
         <div class="mobile-view-switcher">
             <button class="view-switch-btn active" data-view="items">Items</button>
             <button class="view-switch-btn" data-view="folders">My Collection</button>
@@ -39,7 +38,6 @@
     </main>
 </div>
 
-<!-- Mobile Floating Action Button -->
 <div class="fab-container">
     <div class="fab-actions">
         <button id="fab-new-folder" class="fab-action-btn" title="New Folder">📁</button>
@@ -48,12 +46,10 @@
     <button id="mobile-add-btn" class="fab" title="Create"><span>+</span></button>
 </div>
 
-<!-- Mobile Sticky Learn Button -->
 <div class="mobile-bottom-actions">
     <button class="btn btn-primary" id="mobile-learn-btn">Learn</button>
 </div>
 
-<!-- Bulk Action Bar -->
 <div id="bulk-action-bar" class="bulk-action-bar">
     <span id="selection-count" class="selection-count">0 items selected</span>
     <div class="actions">
@@ -172,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     let itemToMove = null;
     let itemToChangeIcon = null;
-    let currentFolderId = null; // Keep track of the current folder
+    let currentFolderId = null;
     let breadcrumbs = [];
     let selectedItems = [];
 
@@ -194,7 +190,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const bulkMoveBtn = document.getElementById('bulk-move-btn');
     const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
     const bulkCancelBtn = document.getElementById('bulk-cancel-btn');
-    // DOM elements that are always present
     const folderTreeEl = document.getElementById('folder-tree');
     const itemsContainerEl = document.getElementById('items-container');
     const currentFolderNameEl = document.getElementById('current-folder-name');
@@ -490,7 +485,6 @@ document.addEventListener('DOMContentLoaded', function() {
         createFlashcardModal.classList.remove('visible');
     });
 
-    // Also handle clicking on the overlay to close
     createFlashcardModal.addEventListener('click', (e) => {
         if (e.target === createFlashcardModal) {
             createFlashcardModal.classList.remove('visible');
@@ -544,13 +538,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (target.classList.contains('item-menu-btn')) {
             e.stopPropagation();
             document.querySelectorAll('.item-card.menu-open').forEach(card => {
-                if (card !== target.closest('.item-card')) { // Close other menus
+                if (card !== target.closest('.item-card')) {
                     card.classList.remove('menu-open');
                     card.querySelector('.item-menu-dropdown').classList.remove('visible');
                 }
             });
-            target.closest('.item-card').classList.toggle('menu-open'); // Open/close current menu
-            target.nextElementSibling.classList.toggle('visible'); // Show/hide dropdown
+            target.closest('.item-card').classList.toggle('menu-open');
+            target.nextElementSibling.classList.toggle('visible');
         }
 
         if (target.classList.contains('move-btn')) {
@@ -568,9 +562,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
             e.preventDefault();
             const card = target.closest('.item-card');
-            // Enter selection mode and select the current item
             toggleSelection(card);
-            // Hide the menu
             target.closest('.item-menu-dropdown').classList.remove('visible');
         }
 
@@ -635,7 +627,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     bulkMoveBtn.addEventListener('click', () => {
-        itemToMove = null; // Ensure single-item move is cleared
+        itemToMove = null;
         openMoveModal();
     });
 
@@ -713,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     cancelMoveBtn.addEventListener('click', () => {
         moveItemModal.classList.remove('visible');
-        clearSelection(); // Clear selection when cancelling
+        clearSelection();
         itemToMove = null;
     });
 
@@ -721,7 +713,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target === moveItemModal) {
             moveItemModal.classList.remove('visible');
             itemToMove = null;
-            clearSelection(); // Clear selection when clicking background to hide the action bar
+            clearSelection();
         }
     });
 
@@ -733,7 +725,6 @@ document.addEventListener('DOMContentLoaded', function() {
         incorrect: 0
     };
 
-    // Event listeners for learn and create buttons
     learnModeBtn.addEventListener('click', () => {
         const treeContainer = document.getElementById('select-learn-folders-tree');
         treeContainer.innerHTML = '';
@@ -741,14 +732,13 @@ document.addEventListener('DOMContentLoaded', function() {
         selectLearnFoldersModal.classList.add('visible');
     });
     mobileLearnBtn.addEventListener('click', () => {
-        learnModeBtn.click(); // Re-use the same logic as the desktop learn button
+        learnModeBtn.click();
     });
 
     newFlashcardBtn.addEventListener('click', () => {
         createFlashcardModal.classList.add('visible');
     });
 
-    // --- Mobile FAB (Speed Dial) Logic ---
     const fabContainer = document.querySelector('.fab-container');
     const mobileAddBtn = document.getElementById('mobile-add-btn');
     const fabNewFlashcardBtn = document.getElementById('fab-new-flashcard');
@@ -758,10 +748,10 @@ document.addEventListener('DOMContentLoaded', function() {
         fabContainer.classList.toggle('open');
     });
     fabNewFlashcardBtn.addEventListener('click', () => {
-        newFlashcardBtn.click(); // Reuse desktop logic
+        newFlashcardBtn.click();
     });
     fabNewFolderBtn.addEventListener('click', () => {
-        newFolderBtn.click(); // Reuse desktop logic
+        newFolderBtn.click();
     });
 
     cancelLearnSelectionBtn.addEventListener('click', () => {
@@ -1017,7 +1007,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- Mobile View Switcher Logic ---
     const viewSwitcher = document.querySelector('.mobile-view-switcher');
     viewSwitcher.addEventListener('click', (e) => {
         if (e.target.classList.contains('view-switch-btn')) {
@@ -1048,7 +1037,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function initialize() {
         folderTreeEl.innerHTML = '';
         renderFolderTree(fullData.folders, folderTreeEl);
-        navigateToFolder(null); // Start at the root
+        navigateToFolder(null);
     }
 
     initialize();

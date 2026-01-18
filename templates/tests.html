@@ -10,7 +10,6 @@
             <h3>Create a New Test</h3>
         </div>
         <div id="desktop-test-generator">
-            <!-- Form will be injected here by JS for desktop -->
         </div>
     </aside>
     <main class="flashcards-main">
@@ -80,7 +79,6 @@
             <button class="modal-close-btn" id="close-generate-modal">&times;</button>
             <h3>Create a New Test</h3>
             <div id="modal-test-generator">
-                <!-- Form will be injected here by JS for modals -->
             </div>
         </div>
     </div>
@@ -133,7 +131,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </form>
     `;
 
-    // Inject form into both desktop and modal containers
     document.getElementById('desktop-test-generator').innerHTML = testGeneratorFormHTML;
     document.getElementById('modal-test-generator').innerHTML = testGeneratorFormHTML;
 
@@ -185,7 +182,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Attach event listener to both forms
     document.querySelectorAll('#test-generator-form').forEach(form => {
         form.addEventListener('submit', handleTestGeneration);
     });
